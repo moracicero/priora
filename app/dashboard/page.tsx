@@ -1,4 +1,6 @@
 "use client";
+
+import { useState } from "react";
 import {
   CheckCircle2,
   LayoutDashboard,
@@ -8,10 +10,9 @@ import {
 } from "lucide-react";
 
 import { AIWidget } from "@/components/dashboard/AIWidget";
-import { StatsCards } from "@/components/dashboard/StatsCards"; 
+import { StatsCards } from "@/components/dashboard/StatsCards";
 import { TaskList } from "@/components/dashboard/TaskList";
 import type { Task } from "../../types/task";
-import { useState } from "react";
 
 const initialTasks: Task[] = [
   {
@@ -45,7 +46,9 @@ const initialTasks: Task[] = [
 ];
 
 export default function DashboardPage() {
-    const [taskTitle, setTaskTitle] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskCategory, setTaskCategory] = useState("General");
+  const [taskPriority, setTaskPriority] = useState<Task["priority"]>("Media");
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
   function handleCreateTask() {
@@ -54,14 +57,17 @@ export default function DashboardPage() {
     const newTask: Task = {
       id: crypto.randomUUID(),
       title: taskTitle,
-      category: "General",
-      priority: "Media",
+      category: taskCategory,
+      priority: taskPriority,
       status: "Pendiente",
     };
 
     setTasks([newTask, ...tasks]);
     setTaskTitle("");
+    setTaskCategory("General");
+    setTaskPriority("Media");
   }
+
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
@@ -111,25 +117,45 @@ export default function DashboardPage() {
               Nueva tarea
             </button>
           </header>
+
           <section className="mt-8 rounded-3xl border border-pink-100 bg-white p-5 shadow-sm">
-  <h2 className="text-xl font-black">Crear nueva tarea</h2>
+            <h2 className="text-xl font-black">Crear nueva tarea</h2>
 
-  <div className="mt-4 flex flex-col gap-3 md:flex-row">
-    <input
-      value={taskTitle}
-      onChange={(event) => setTaskTitle(event.target.value)}
-      placeholder="Ej: Preparar deploy del proyecto"
-      className="flex-1 rounded-2xl border border-pink-100 bg-[#FFF9FB] px-4 py-3 text-sm outline-none focus:border-pink-400"
-    />
+            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_180px_160px_auto]">
+              <input
+                value={taskTitle}
+                onChange={(event) => setTaskTitle(event.target.value)}
+                placeholder="Ej: Preparar deploy del proyecto"
+                className="rounded-2xl border border-pink-100 bg-[#FFF9FB] px-4 py-3 text-sm outline-none focus:border-pink-400"
+              />
 
-    <button
-      onClick={handleCreateTask}
-      className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
-    >
-      Crear tarea
-    </button>
-  </div>
-</section>
+              <input
+                value={taskCategory}
+                onChange={(event) => setTaskCategory(event.target.value)}
+                placeholder="Categoría"
+                className="rounded-2xl border border-pink-100 bg-[#FFF9FB] px-4 py-3 text-sm outline-none focus:border-pink-400"
+              />
+
+              <select
+                value={taskPriority}
+                onChange={(event) =>
+                  setTaskPriority(event.target.value as Task["priority"])
+                }
+                className="rounded-2xl border border-pink-100 bg-[#FFF9FB] px-4 py-3 text-sm outline-none focus:border-pink-400"
+              >
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+              </select>
+
+              <button
+                onClick={handleCreateTask}
+                className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
+              >
+                Crear tarea
+              </button>
+            </div>
+          </section>
 
           <StatsCards />
 
