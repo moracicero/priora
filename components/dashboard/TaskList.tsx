@@ -1,0 +1,46 @@
+import { Circle } from "lucide-react";
+import type { Task } from "../../types/task";
+type TaskListProps = {
+  tasks: Task[];
+};
+
+export function TaskList({ tasks }: TaskListProps) {
+  return (
+    <article className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black">Tareas recientes</h2>
+          <p className="text-sm text-slate-500">
+            Últimas tareas cargadas en tu workspace.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-3">
+        {tasks.map((task) => (
+          <div
+            key={task.id}
+            className="flex flex-col justify-between gap-3 rounded-2xl border border-pink-100 bg-[#FFF9FB] p-4 md:flex-row md:items-center"
+          >
+            <div className="flex items-center gap-4">
+              <Circle size={18} className="text-pink-400" />
+              <div>
+                <h3 className="font-bold">{task.title}</h3>
+                <p className="text-sm text-slate-500">{task.category}</p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-pink-500">
+                {task.priority}
+              </span>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-500">
+                {task.status}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}

@@ -1,24 +1,67 @@
+"use client";
 import {
-  BarChart3,
-  CalendarDays,
   CheckCircle2,
-  Circle,
-  Clock3,
   LayoutDashboard,
   LogOut,
   Plus,
-  Sparkles,
   User,
 } from "lucide-react";
 
-export default function DashboardPage() {
-  const tasks = [
-    ["Preparar entrevista técnica", "Trabajo", "Alta", "Pendiente"],
-    ["Documentar README", "Proyecto", "Media", "En progreso"],
-    ["Validar flujo de login", "QA", "Alta", "Pendiente"],
-    ["Deploy en Vercel", "DevOps", "Media", "Finalizada"],
-  ];
+import { AIWidget } from "@/components/dashboard/AIWidget";
+import { StatsCards } from "@/components/dashboard/StatsCards"; 
+import { TaskList } from "@/components/dashboard/TaskList";
+import type { Task } from "../../types/task";
+import { useState } from "react";
 
+const initialTasks: Task[] = [
+  {
+    id: "1",
+    title: "Preparar entrevista técnica",
+    category: "Trabajo",
+    priority: "Alta",
+    status: "Pendiente",
+  },
+  {
+    id: "2",
+    title: "Documentar README",
+    category: "Proyecto",
+    priority: "Media",
+    status: "En progreso",
+  },
+  {
+    id: "3",
+    title: "Validar flujo de login",
+    category: "QA",
+    priority: "Alta",
+    status: "Pendiente",
+  },
+  {
+    id: "4",
+    title: "Deploy en Vercel",
+    category: "DevOps",
+    priority: "Media",
+    status: "Finalizada",
+  },
+];
+
+export default function DashboardPage() {
+    const [taskTitle, setTaskTitle] = useState("");
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+
+  function handleCreateTask() {
+    if (!taskTitle.trim()) return;
+
+    const newTask: Task = {
+      id: crypto.randomUUID(),
+      title: taskTitle,
+      category: "General",
+      priority: "Media",
+      status: "Pendiente",
+    };
+
+    setTasks([newTask, ...tasks]);
+    setTaskTitle("");
+  }
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
@@ -68,78 +111,33 @@ export default function DashboardPage() {
               Nueva tarea
             </button>
           </header>
+          <section className="mt-8 rounded-3xl border border-pink-100 bg-white p-5 shadow-sm">
+  <h2 className="text-xl font-black">Crear nueva tarea</h2>
 
-          <section className="mt-8 grid gap-4 md:grid-cols-4">
-            {[
-              [BarChart3, "12", "Total"],
-              [Clock3, "4", "Pendientes"],
-              [CalendarDays, "3", "En progreso"],
-              [CheckCircle2, "5", "Finalizadas"],
-            ].map(([Icon, number, label]) => (
-              <article
-                key={label as string}
-                className="rounded-3xl border border-pink-100 bg-white p-5 shadow-sm"
-              >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-pink-50 text-pink-500">
-                  <Icon size={21} />
-                </div>
-                <p className="text-3xl font-black">{number as string}</p>
-                <p className="mt-1 text-sm font-medium text-slate-500">
-                  {label as string}
-                </p>
-              </article>
-            ))}
-          </section>
+  <div className="mt-4 flex flex-col gap-3 md:flex-row">
+    <input
+      value={taskTitle}
+      onChange={(event) => setTaskTitle(event.target.value)}
+      placeholder="Ej: Preparar deploy del proyecto"
+      className="flex-1 rounded-2xl border border-pink-100 bg-[#FFF9FB] px-4 py-3 text-sm outline-none focus:border-pink-400"
+    />
+
+    <button
+      onClick={handleCreateTask}
+      className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
+    >
+      Crear tarea
+    </button>
+  </div>
+</section>
+
+          <StatsCards />
 
           <section className="mt-8 grid gap-6 xl:grid-cols-[1fr_380px]">
-            <article className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-black">Tareas recientes</h2>
-                  <p className="text-sm text-slate-500">
-                    Últimas tareas cargadas en tu workspace.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid gap-3">
-                {tasks.map(([title, category, priority, status]) => (
-                  <div
-                    key={title}
-                    className="flex flex-col justify-between gap-3 rounded-2xl border border-pink-100 bg-[#FFF9FB] p-4 md:flex-row md:items-center"
-                  >
-                    <div className="flex items-center gap-4">
-                      <Circle size={18} className="text-pink-400" />
-                      <div>
-                        <h3 className="font-bold">{title}</h3>
-                        <p className="text-sm text-slate-500">{category}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-pink-500">
-                        {priority}
-                      </span>
-                      <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-500">
-                        {status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </article>
+            <TaskList tasks={tasks} />
 
             <aside className="space-y-6">
-              <article className="rounded-3xl bg-gradient-to-r from-pink-500 to-rose-400 p-6 text-white shadow-lg shadow-pink-200">
-                <div className="flex items-center gap-2 text-lg font-black">
-                  <Sparkles size={20} />
-                  Sugerencia IA
-                </div>
-                <p className="mt-3 text-sm leading-6 text-pink-50">
-                  Te recomiendo empezar por las tareas de prioridad alta y
-                  cerrar primero el flujo de login antes del deploy.
-                </p>
-              </article>
+              <AIWidget />
 
               <article className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-black">Progreso semanal</h2>
