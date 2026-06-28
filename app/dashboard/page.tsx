@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react";
 import {
@@ -32,35 +33,60 @@ const initialTasks: Task[] = [
     status: "En progreso",
   },
 ];
+function suggestPriority(title: string): Task["priority"] {
+  const text = title.toLowerCase();
 
-function getInitialTasks(): Task[] {
-  if (typeof window === "undefined") {
-    return initialTasks;
+  if (
+    text.includes("urgente") ||
+    text.includes("mañana") ||
+    text.includes("entrevista") ||
+    text.includes("cliente") ||
+    text.includes("deploy")
+  ) {
+    return "Alta";
   }
 
-  const savedTasks = window.localStorage.getItem(STORAGE_KEY);
-
-  if (!savedTasks) {
-    return initialTasks;
+  if (
+    text.includes("proyecto") ||
+    text.includes("readme") ||
+    text.includes("estudiar") ||
+    text.includes("validar")
+  ) {
+    return "Media";
   }
 
-  try {
-    return JSON.parse(savedTasks) as Task[];
-  } catch {
-    window.localStorage.removeItem(STORAGE_KEY);
-    return initialTasks;
-  }
+  return "Baja";
 }
 
 export default function DashboardPage() {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskCategory, setTaskCategory] = useState("General");
   const [taskPriority, setTaskPriority] = useState<Task["priority"]>("Media");
-  const [tasks, setTasks] = useState<Task[]>(getInitialTasks);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [aiMessage, setAiMessage] = useState("");
 
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-  }, [tasks]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+useEffect(() => {
+  const savedTasks = window.localStorage.getItem(STORAGE_KEY);
+
+  if (savedTasks) {
+    try {
+      const parsedTasks = JSON.parse(savedTasks) as Task[];
+      setTasks(parsedTasks);
+    } catch {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
+  setIsLoaded(true);
+}, []);
+
+useEffect(() => {
+  if (!isLoaded) return;
+
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}, [tasks, isLoaded]);
 
   function handleCreateTask() {
     if (!taskTitle.trim()) return;
@@ -77,7 +103,20 @@ export default function DashboardPage() {
     setTaskTitle("");
     setTaskCategory("General");
     setTaskPriority("Media");
+    setAiMessage("");
   }
+  
+  function handleSuggestPriority() {
+  if (!taskTitle.trim()) {
+    setAiMessage("Escribí primero el título de la tarea.");
+    return;
+  }
+
+  const suggestedPriority = suggestPriority(taskTitle);
+
+  setTaskPriority(suggestedPriority);
+  setAiMessage(`Priora recomienda prioridad ${suggestedPriority}.`);
+}
 
   function handleUpdateTaskStatus(id: string, status: Task["status"]) {
     setTasks(
@@ -151,7 +190,7 @@ export default function DashboardPage() {
           <section className="mt-8 rounded-3xl border border-pink-100 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-black">Crear nueva tarea</h2>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_180px_160px_auto]">
+            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_180px_160px_auto_auto]">
               <input
                 value={taskTitle}
                 onChange={(event) => setTaskTitle(event.target.value)}
@@ -177,7 +216,12 @@ export default function DashboardPage() {
                 <option value="Media">Media</option>
                 <option value="Baja">Baja</option>
               </select>
-
+              <button
+                onClick={handleSuggestPriority}
+                className="rounded-2xl border border-pink-100 bg-white px-5 py-3 text-sm font-bold text-pink-500 shadow-sm hover:bg-pink-50"
+              >
+                ✨ Sugerir
+              </button>
               <button
                 onClick={handleCreateTask}
                 className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
@@ -185,6 +229,11 @@ export default function DashboardPage() {
                 Crear tarea
               </button>
             </div>
+            {aiMessage && (
+              <p className="mt-3 rounded-2xl bg-pink-50 px-4 py-3 text-sm font-bold text-pink-500">
+                ✨ {aiMessage}
+              </p>
+            )}
           </section>
 
           <StatsCards tasks={tasks} />
