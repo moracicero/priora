@@ -1,10 +1,12 @@
 import { Circle } from "lucide-react";
 import type { Task } from "../../types/task";
+
 type TaskListProps = {
   tasks: Task[];
+  onUpdateStatus: (id: string, status: Task["status"]) => void;
 };
 
-export function TaskList({ tasks }: TaskListProps) {
+export function TaskList({ tasks, onUpdateStatus }: TaskListProps) {
   return (
     <article className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
       <div className="mb-5 flex items-center justify-between">
@@ -30,13 +32,22 @@ export function TaskList({ tasks }: TaskListProps) {
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-pink-500">
                 {task.priority}
               </span>
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-500">
-                {task.status}
-              </span>
+
+              <select
+                value={task.status}
+                onChange={(event) =>
+                  onUpdateStatus(task.id, event.target.value as Task["status"])
+                }
+                className="rounded-full border border-pink-100 bg-white px-3 py-1 text-xs font-black text-slate-500 outline-none"
+              >
+                <option value="Pendiente">Pendiente</option>
+                <option value="En progreso">En progreso</option>
+                <option value="Finalizada">Finalizada</option>
+              </select>
             </div>
           </div>
         ))}

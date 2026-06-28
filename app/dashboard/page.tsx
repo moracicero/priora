@@ -68,6 +68,18 @@ export default function DashboardPage() {
     setTaskPriority("Media");
   }
 
+  function handleUpdateTaskStatus(id: string, status: Task["status"]) {
+  setTasks(
+    tasks.map((task) =>
+      task.id === id
+        ? {
+            ...task,
+            status,
+          }
+        : task
+    )
+  );
+}
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
@@ -157,10 +169,10 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          <StatsCards />
+         <StatsCards tasks={tasks} />
 
           <section className="mt-8 grid gap-6 xl:grid-cols-[1fr_380px]">
-            <TaskList tasks={tasks} />
+            <TaskList tasks={tasks} onUpdateStatus={handleUpdateTaskStatus} />
 
             <aside className="space-y-6">
               <AIWidget />
