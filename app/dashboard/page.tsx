@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CheckCircle2,
   LayoutDashboard,
@@ -9,10 +9,12 @@ import {
   User,
 } from "lucide-react";
 
-import { AIWidget } from "@/components/dashboard/AIWidget";
-import { StatsCards } from "@/components/dashboard/StatsCards";
-import { TaskList } from "@/components/dashboard/TaskList";
+import { AIWidget } from "../../components/dashboard/AIWidget";
+import { StatsCards } from "../../components/dashboard/StatsCards";
+import { TaskList } from "../../components/dashboard/TaskList";
 import type { Task } from "../../types/task";
+
+const STORAGE_KEY = "priora_tasks";
 
 const initialTasks: Task[] = [
   {
@@ -29,27 +31,36 @@ const initialTasks: Task[] = [
     priority: "Media",
     status: "En progreso",
   },
-  {
-    id: "3",
-    title: "Validar flujo de login",
-    category: "QA",
-    priority: "Alta",
-    status: "Pendiente",
-  },
-  {
-    id: "4",
-    title: "Deploy en Vercel",
-    category: "DevOps",
-    priority: "Media",
-    status: "Finalizada",
-  },
 ];
+
+function getInitialTasks(): Task[] {
+  if (typeof window === "undefined") {
+    return initialTasks;
+  }
+
+  const savedTasks = window.localStorage.getItem(STORAGE_KEY);
+
+  if (!savedTasks) {
+    return initialTasks;
+  }
+
+  try {
+    return JSON.parse(savedTasks) as Task[];
+  } catch {
+    window.localStorage.removeItem(STORAGE_KEY);
+    return initialTasks;
+  }
+}
 
 export default function DashboardPage() {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskCategory, setTaskCategory] = useState("General");
   const [taskPriority, setTaskPriority] = useState<Task["priority"]>("Media");
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>(getInitialTasks);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  }, [tasks]);
 
   function handleCreateTask() {
     if (!taskTitle.trim()) return;
@@ -57,7 +68,7 @@ export default function DashboardPage() {
     const newTask: Task = {
       id: crypto.randomUUID(),
       title: taskTitle,
-      category: taskCategory,
+      category: taskCategory || "General",
       priority: taskPriority,
       status: "Pendiente",
     };
@@ -69,17 +80,24 @@ export default function DashboardPage() {
   }
 
   function handleUpdateTaskStatus(id: string, status: Task["status"]) {
-  setTasks(
-    tasks.map((task) =>
-      task.id === id
-        ? {
-            ...task,
-            status,
-          }
-        : task
-    )
-  );
-}
+    setTasks(
+      tasks.map((task) => (task.id === id ? { ...task, status } : task))
+    );
+  }
+
+  function handleDeleteTask(id: string) {
+    setTasks(tasks.filter((task) => task.id !== id));
+  }
+
+  const completedPercentage =
+    tasks.length === 0
+      ? 0
+      : Math.round(
+          (tasks.filter((task) => task.status === "Finalizada").length /
+            tasks.length) *
+            100
+        );
+
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
@@ -169,10 +187,14 @@ export default function DashboardPage() {
             </div>
           </section>
 
-         <StatsCards tasks={tasks} />
+          <StatsCards tasks={tasks} />
 
           <section className="mt-8 grid gap-6 xl:grid-cols-[1fr_380px]">
-            <TaskList tasks={tasks} onUpdateStatus={handleUpdateTaskStatus} />
+            <TaskList
+              tasks={tasks}
+              onUpdateStatus={handleUpdateTaskStatus}
+              onDeleteTask={handleDeleteTask}
+            />
 
             <aside className="space-y-6">
               <AIWidget />
@@ -180,11 +202,14 @@ export default function DashboardPage() {
               <article className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-black">Progreso semanal</h2>
                 <p className="mt-2 text-sm text-slate-500">
-                  Completaste el 64% de tus tareas esta semana.
+                  Completaste el {completedPercentage}% de tus tareas.
                 </p>
 
                 <div className="mt-5 h-3 rounded-full bg-pink-50">
-                  <div className="h-3 w-[64%] rounded-full bg-gradient-to-r from-pink-500 to-rose-400" />
+                  <div
+                    className="h-3 rounded-full bg-gradient-to-r from-pink-500 to-rose-400"
+                    style={{ width: `${completedPercentage}%` }}
+                  />
                 </div>
               </article>
             </aside>
