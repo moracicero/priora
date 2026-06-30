@@ -1,7 +1,11 @@
 "use client";
 
 /* eslint-disable react-hooks/exhaustive-deps */
-
+import {
+  signInWithGoogle,
+  signOut,
+  getCurrentUser,
+} from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import {
   CheckCircle2,
@@ -57,6 +61,8 @@ export default function DashboardPage() {
   const [filterStatus, setFilterStatus] = useState<Task["status"] | "Todas">(
     "Todas"
   );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [user, setUser] = useState<any>(null);
 
   async function loadTasks() {
     try {
@@ -69,6 +75,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
   async function fetchTasks() {
+    getCurrentUser().then(setUser);
     await loadTasks();
   }
 
@@ -183,10 +190,21 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200">
-              <Plus size={18} />
-              Nueva tarea
+            {user ? (
+            <button
+              onClick={signOut}
+              className="rounded-2xl bg-pink-500 px-5 py-3 font-bold text-white"
+            >
+              Cerrar sesión
             </button>
+          ) : (
+            <button
+              onClick={signInWithGoogle}
+              className="rounded-2xl bg-pink-500 px-5 py-3 font-bold text-white"
+            >
+              Iniciar con Google
+            </button>
+          )}
           </header>
 
           <section className="mt-8 rounded-3xl border border-pink-100 bg-white p-5 shadow-sm">
