@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useState } from "react";
 import {
@@ -15,25 +15,12 @@ import { AIWidget } from "../../components/dashboard/AIWidget";
 import { StatsCards } from "../../components/dashboard/StatsCards";
 import { TaskList } from "../../components/dashboard/TaskList";
 import type { Task } from "../../types/task";
-
-const STORAGE_KEY = "priora_tasks";
-
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    title: "Preparar entrevista técnica",
-    category: "Trabajo",
-    priority: "Alta",
-    status: "Pendiente",
-  },
-  {
-    id: "2",
-    title: "Documentar README",
-    category: "Proyecto",
-    priority: "Media",
-    status: "En progreso",
-  },
-];
+import {
+  createTask,
+  deleteTask,
+  getTasks,
+  updateTaskStatus,
+} from "../../services/taskService";
 
 function suggestPriority(title: string): Task["priority"] {
   const text = title.toLowerCase();
@@ -64,47 +51,43 @@ export default function DashboardPage() {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskCategory, setTaskCategory] = useState("General");
   const [taskPriority, setTaskPriority] = useState<Task["priority"]>("Media");
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [aiMessage, setAiMessage] = useState("");
-  const [isLoaded, setIsLoaded] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<Task["status"] | "Todas">(
     "Todas"
   );
 
-  useEffect(() => {
-    const savedTasks = window.localStorage.getItem(STORAGE_KEY);
-
-    if (savedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedTasks) as Task[];
-        setTasks(parsedTasks);
-      } catch {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
+  async function loadTasks() {
+    try {
+      const data = await getTasks();
+      setTasks(data);
+    } catch (error) {
+      console.error(error);
     }
-
-    setIsLoaded(true);
-  }, []);
+  }
 
   useEffect(() => {
-    if (!isLoaded) return;
+  async function fetchTasks() {
+    await loadTasks();
+  }
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-  }, [tasks, isLoaded]);
+  fetchTasks();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
-  function handleCreateTask() {
+  async function handleCreateTask() {
     if (!taskTitle.trim()) return;
 
-    const newTask: Task = {
-      id: crypto.randomUUID(),
+    await createTask({
       title: taskTitle,
       category: taskCategory || "General",
       priority: taskPriority,
       status: "Pendiente",
-    };
+    });
 
-    setTasks([newTask, ...tasks]);
+    await loadTasks();
+
     setTaskTitle("");
     setTaskCategory("General");
     setTaskPriority("Media");
@@ -123,14 +106,17 @@ export default function DashboardPage() {
     setAiMessage(`Priora recomienda prioridad ${suggestedPriority}.`);
   }
 
-  function handleUpdateTaskStatus(id: string, status: Task["status"]) {
-    setTasks(
-      tasks.map((task) => (task.id === id ? { ...task, status } : task))
-    );
+  async function handleUpdateTaskStatus(
+    id: string,
+    status: Task["status"]
+  ) {
+    await updateTaskStatus(id, status);
+    await loadTasks();
   }
 
-  function handleDeleteTask(id: string) {
-    setTasks(tasks.filter((task) => task.id !== id));
+  async function handleDeleteTask(id: string) {
+    await deleteTask(id);
+    await loadTasks();
   }
 
   const filteredTasks = tasks.filter((task) => {
