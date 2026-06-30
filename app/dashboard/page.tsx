@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle2, LayoutDashboard, LogOut, User } from "lucide-react";
+import Link from "next/link";
 
 import { getCurrentUser, signInWithGoogle, signOut } from "@/hooks/useAuth";
 import { AIWidget } from "../../components/dashboard/AIWidget";
@@ -176,20 +177,29 @@ export default function DashboardPage() {
           </div>
 
           <nav className="mt-10 space-y-2">
-            <button className="flex w-full items-center gap-3 rounded-2xl bg-pink-50 px-4 py-3 text-sm font-bold text-pink-500">
-              <LayoutDashboard size={18} />
-              Dashboard
-            </button>
+          <Link
+            href="/dashboard"
+            className="flex w-full items-center gap-3 rounded-2xl bg-pink-50 px-4 py-3 text-sm font-bold text-pink-500"
+          >
+            <LayoutDashboard size={18} />
+            Dashboard
+          </Link>
 
-            <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500">
-              <CheckCircle2 size={18} />
-              Tareas
-            </button>
+          <Link
+            href="/tasks"
+            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+          >
+            <CheckCircle2 size={18} />
+            Tareas
+          </Link>
 
-            <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500">
-              <User size={18} />
-              Perfil
-            </button>
+          <Link
+            href="/profile"
+            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+          >
+            <User size={18} />
+            Perfil
+          </Link>
           </nav>
 
           <button
