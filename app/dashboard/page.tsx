@@ -1,20 +1,11 @@
 "use client";
 
 /* eslint-disable react-hooks/exhaustive-deps */
-import {
-  signInWithGoogle,
-  signOut,
-  getCurrentUser,
-} from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
-import {
-  CheckCircle2,
-  LayoutDashboard,
-  LogOut,
-  Plus,
-  User,
-} from "lucide-react";
 
+import { useEffect, useState } from "react";
+import { CheckCircle2, LayoutDashboard, LogOut, User } from "lucide-react";
+
+import { getCurrentUser, signInWithGoogle, signOut } from "@/hooks/useAuth";
 import { AIWidget } from "../../components/dashboard/AIWidget";
 import { StatsCards } from "../../components/dashboard/StatsCards";
 import { TaskList } from "../../components/dashboard/TaskList";
@@ -25,6 +16,14 @@ import {
   getTasks,
   updateTaskStatus,
 } from "../../services/taskService";
+
+type UserProfile = {
+  email?: string;
+  user_metadata?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+};
 
 function suggestPriority(title: string): Task["priority"] {
   const text = title.toLowerCase();
@@ -61,16 +60,7 @@ export default function DashboardPage() {
   const [filterStatus, setFilterStatus] = useState<Task["status"] | "Todas">(
     "Todas"
   );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type UserProfile = {
-  email?: string;
-  user_metadata?: {
-    full_name?: string;
-    avatar_url?: string;
-  };
-};
-
-const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
 
   async function loadTasks() {
     try {
@@ -78,41 +68,45 @@ const [user, setUser] = useState<UserProfile | null>(null);
       setTasks(data);
     } catch (error) {
       console.error(error);
+      setTasks([]);
     }
   }
 
   useEffect(() => {
-  async function fetchTasks() {
-    getCurrentUser().then(setUser);
-    await loadTasks();
-  }
+    async function fetchInitialData() {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
 
-  fetchTasks();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
+      if (currentUser) {
+        await loadTasks();
+      }
+    }
+
+    fetchInitialData();
+  }, []);
 
   async function handleCreateTask() {
-  if (!user) {
-    setAiMessage("Iniciá sesión con Google para crear tareas.");
-    return;
+    if (!user) {
+      setAiMessage("Iniciá sesión con Google para crear tareas.");
+      return;
+    }
+
+    if (!taskTitle.trim()) return;
+
+    await createTask({
+      title: taskTitle,
+      category: taskCategory || "General",
+      priority: taskPriority,
+      status: "Pendiente",
+    });
+
+    await loadTasks();
+
+    setTaskTitle("");
+    setTaskCategory("General");
+    setTaskPriority("Media");
+    setAiMessage("");
   }
-
-  if (!taskTitle.trim()) return;
-
-  await createTask({
-    title: taskTitle,
-    category: taskCategory || "General",
-    priority: taskPriority,
-    status: "Pendiente",
-  });
-
-  await loadTasks();
-
-  setTaskTitle("");
-  setTaskCategory("General");
-  setTaskPriority("Media");
-  setAiMessage("");
-}
 
   function handleSuggestPriority() {
     if (!taskTitle.trim()) {
@@ -126,10 +120,7 @@ const [user, setUser] = useState<UserProfile | null>(null);
     setAiMessage(`Priora recomienda prioridad ${suggestedPriority}.`);
   }
 
-  async function handleUpdateTaskStatus(
-    id: string,
-    status: Task["status"]
-  ) {
+  async function handleUpdateTaskStatus(id: string, status: Task["status"]) {
     await updateTaskStatus(id, status);
     await loadTasks();
   }
@@ -158,8 +149,21 @@ const [user, setUser] = useState<UserProfile | null>(null);
             tasks.length) *
             100
         );
-const userName = user?.user_metadata?.full_name || "Usuario";
-const userAvatar = user?.user_metadata?.avatar_url;
+
+  const progressMessage =
+    tasks.length === 0
+      ? "Creá tu primera tarea para empezar a organizar tu día."
+      : completedPercentage === 100
+        ? "Excelente trabajo, completaste todas tus tareas."
+        : completedPercentage >= 70
+          ? "Ya casi terminás, estás muy cerca del objetivo."
+          : completedPercentage >= 30
+            ? "Buen ritmo, seguí avanzando con las tareas importantes."
+            : "Empezá por una tarea de prioridad alta para ganar impulso.";
+
+  const userName = user?.user_metadata?.full_name || "Usuario";
+  const userAvatar = user?.user_metadata?.avatar_url;
+
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
@@ -188,60 +192,68 @@ const userAvatar = user?.user_metadata?.avatar_url;
             </button>
           </nav>
 
-          <button className="mt-10 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500">
+          <button
+            onClick={async () => {
+              await signOut();
+              setUser(null);
+              setTasks([]);
+            }}
+            className="mt-10 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+          >
             <LogOut size={18} />
             Cerrar sesión
           </button>
         </aside>
 
         <section className="p-6 lg:p-10">
-        <header className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
-          <div className="flex items-center gap-4">
-            {userAvatar ? (
-              <img
-                src={userAvatar}
-                alt={userName}
-                className="h-14 w-14 rounded-2xl object-cover shadow-md shadow-pink-100"
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-100 text-xl font-black text-pink-500">
-                {userName.charAt(0)}
+          <header className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
+            <div className="flex items-center gap-4">
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt={userName}
+                  className="h-14 w-14 rounded-2xl object-cover shadow-md shadow-pink-100"
+                />
+              ) : (
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-100 text-xl font-black text-pink-500">
+                  {userName.charAt(0)}
+                </div>
+              )}
+
+              <div>
+                <p className="font-bold text-pink-500">Dashboard</p>
+                <h1 className="mt-1 text-4xl font-black">
+                  Hola, {user ? userName : "invitada"} 👋
+                </h1>
+                <p className="mt-2 text-slate-500">
+                  {user
+                    ? "Acá tenés el resumen de tu productividad de hoy."
+                    : "Iniciá sesión para guardar y gestionar tus tareas."}
+                </p>
               </div>
-            )}
-
-            <div>
-              <p className="font-bold text-pink-500">Dashboard</p>
-              <h1 className="mt-1 text-4xl font-black">
-                Hola, {user ? userName : "invitada"} 👋
-              </h1>
-              <p className="mt-2 text-slate-500">
-                {user
-                  ? "Acá tenés el resumen de tu productividad de hoy."
-                  : "Iniciá sesión para guardar y gestionar tus tareas."}
-              </p>
             </div>
-          </div>
 
-          {user ? (
-            <button
-              onClick={async () => {
-                await signOut();
-                setUser(null);
-                setTasks([]);
-              }}
-              className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
-            >
-              Cerrar sesión
-            </button>
-          ) : (
-            <button
-              onClick={signInWithGoogle}
-              className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
-            >
-              Iniciar con Google
-            </button>
-          )}
-        </header>
+            {user ? (
+              <button
+                onClick={async () => {
+                  await signOut();
+                  setUser(null);
+                  setTasks([]);
+                }}
+                className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
+              >
+                Cerrar sesión
+              </button>
+            ) : (
+              <button
+                onClick={signInWithGoogle}
+                className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
+              >
+                Iniciar con Google
+              </button>
+            )}
+          </header>
+
           <section className="mt-8 rounded-3xl border border-pink-100 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-black">Crear nueva tarea</h2>
 
@@ -334,9 +346,7 @@ const userAvatar = user?.user_metadata?.avatar_url;
 
               <article className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-black">Progreso semanal</h2>
-                <p className="mt-2 text-sm text-slate-500">
-                  Completaste el {completedPercentage}% de tus tareas.
-                </p>
+                <p className="mt-2 text-sm text-slate-500">{progressMessage}</p>
 
                 <div className="mt-5 h-3 rounded-full bg-pink-50">
                   <div
@@ -344,6 +354,10 @@ const userAvatar = user?.user_metadata?.avatar_url;
                     style={{ width: `${completedPercentage}%` }}
                   />
                 </div>
+
+                <p className="mt-3 text-xs font-bold text-pink-500">
+                  {completedPercentage}% completado
+                </p>
               </article>
             </aside>
           </section>
