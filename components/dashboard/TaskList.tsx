@@ -7,6 +7,12 @@ type TaskListProps = {
   onDeleteTask: (id: string) => void;
 };
 
+const priorityStyles = {
+  Alta: "bg-rose-50 text-rose-500",
+  Media: "bg-amber-50 text-amber-500",
+  Baja: "bg-emerald-50 text-emerald-500",
+};
+
 export function TaskList({
   tasks,
   onUpdateStatus,
@@ -25,9 +31,9 @@ export function TaskList({
 
       {tasks.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-pink-200 bg-[#FFF9FB] p-8 text-center">
-          <p className="font-bold text-slate-700">Todavía no tenés tareas</p>
+          <p className="font-bold text-slate-700">No hay tareas para mostrar</p>
           <p className="mt-1 text-sm text-slate-500">
-            Creá una nueva tarea para empezar a organizar tu día.
+            Creá una nueva tarea o modificá los filtros.
           </p>
         </div>
       ) : (
@@ -35,7 +41,7 @@ export function TaskList({
           {tasks.map((task) => (
             <div
               key={task.id}
-              className="flex flex-col justify-between gap-3 rounded-2xl border border-pink-100 bg-[#FFF9FB] p-4 md:flex-row md:items-center"
+              className="flex flex-col justify-between gap-3 rounded-2xl border border-pink-100 bg-[#FFF9FB] p-4 transition hover:-translate-y-0.5 hover:shadow-md md:flex-row md:items-center"
             >
               <div className="flex items-center gap-4">
                 <Circle size={18} className="text-pink-400" />
@@ -46,7 +52,11 @@ export function TaskList({
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-pink-500">
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-black ${
+                    priorityStyles[task.priority]
+                  }`}
+                >
                   {task.priority}
                 </span>
 
