@@ -1,63 +1,74 @@
-import { supabase } from "@/lib/supabase";
-import { Task } from "@/types/task";
+import { supabase } from "../lib/supabase";
+import type { Task } from "../types/task";
+
+async function getUserId() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return user?.id ?? null;
+}
 
 export async function getTasks() {
+  const userId = await getUserId();
+
+  if (!userId) return [];
+
   const { data, error } = await supabase
     .from("tasks")
     .select("*")
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
-  if (error) {
-  console.log(error);
-  throw error;
-}
+  if (error) throw error;
 
   return data as Task[];
 }
 
 export async function createTask(task: Omit<Task, "id">) {
+  const userId = await getUserId()
+  if (!userId) throw new Error("Usuario no autenticado");
+
   const { data, error } = await supabase
     .from("tasks")
-    .insert(task)
+    .insert({
+      ...task,
+      user_id: userId,
+    })
     .select()
     .single();
 
-  if (error) {
-    console.error("SUPABASE ERROR:", error);
-    alert(JSON.stringify(error, null, 2));
-    throw error;
-  }
+  if (error) throw error;
 
   return data as Task;
 }
 
 export async function deleteTask(id: string) {
+  const userId = await getUserId();
+  if (!userId) throw new Error("Usuario no autenticado");
+
   const { error } = await supabase
     .from("tasks")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", userId);
 
-  if (error) {
-  console.log(error);
-  throw error;
-}
+  if (error) throw error;
 }
 
-export async function updateTaskStatus(
-  id: string,
-  status: Task["status"]
-) {
+export async function updateTaskStatus(id: string, status: Task["status"]) {
+  const userId = await getUserId();
+  if (!userId) throw new Error("Usuario no autenticado");
+
   const { data, error } = await supabase
     .from("tasks")
     .update({ status })
     .eq("id", id)
+    .eq("user_id", userId)
     .select()
     .single();
 
-    if (error) {
-    console.log(error);
-    throw error;
-    }
+  if (error) throw error;
 
   return data as Task;
 }

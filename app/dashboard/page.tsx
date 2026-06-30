@@ -84,22 +84,27 @@ export default function DashboardPage() {
 }, []);
 
   async function handleCreateTask() {
-    if (!taskTitle.trim()) return;
-
-    await createTask({
-      title: taskTitle,
-      category: taskCategory || "General",
-      priority: taskPriority,
-      status: "Pendiente",
-    });
-
-    await loadTasks();
-
-    setTaskTitle("");
-    setTaskCategory("General");
-    setTaskPriority("Media");
-    setAiMessage("");
+  if (!user) {
+    setAiMessage("Iniciá sesión con Google para crear tareas.");
+    return;
   }
+
+  if (!taskTitle.trim()) return;
+
+  await createTask({
+    title: taskTitle,
+    category: taskCategory || "General",
+    priority: taskPriority,
+    status: "Pendiente",
+  });
+
+  await loadTasks();
+
+  setTaskTitle("");
+  setTaskCategory("General");
+  setTaskPriority("Media");
+  setAiMessage("");
+}
 
   function handleSuggestPriority() {
     if (!taskTitle.trim()) {
