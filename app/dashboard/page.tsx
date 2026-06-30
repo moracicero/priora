@@ -62,7 +62,15 @@ export default function DashboardPage() {
     "Todas"
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [user, setUser] = useState<any>(null);
+  type UserProfile = {
+  email?: string;
+  user_metadata?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+};
+
+const [user, setUser] = useState<UserProfile | null>(null);
 
   async function loadTasks() {
     try {
@@ -150,7 +158,8 @@ export default function DashboardPage() {
             tasks.length) *
             100
         );
-
+const userName = user?.user_metadata?.full_name || "Usuario";
+const userAvatar = user?.user_metadata?.avatar_url;
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
@@ -186,32 +195,53 @@ export default function DashboardPage() {
         </aside>
 
         <section className="p-6 lg:p-10">
-          <header className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
+        <header className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
+          <div className="flex items-center gap-4">
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt={userName}
+                className="h-14 w-14 rounded-2xl object-cover shadow-md shadow-pink-100"
+              />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-100 text-xl font-black text-pink-500">
+                {userName.charAt(0)}
+              </div>
+            )}
+
             <div>
               <p className="font-bold text-pink-500">Dashboard</p>
-              <h1 className="mt-1 text-4xl font-black">Hola, Mora 👋</h1>
+              <h1 className="mt-1 text-4xl font-black">
+                Hola, {user ? userName : "invitada"} 👋
+              </h1>
               <p className="mt-2 text-slate-500">
-                Acá tenés el resumen de tu productividad de hoy.
+                {user
+                  ? "Acá tenés el resumen de tu productividad de hoy."
+                  : "Iniciá sesión para guardar y gestionar tus tareas."}
               </p>
             </div>
+          </div>
 
-            {user ? (
+          {user ? (
             <button
-              onClick={signOut}
-              className="rounded-2xl bg-pink-500 px-5 py-3 font-bold text-white"
+              onClick={async () => {
+                await signOut();
+                setUser(null);
+                setTasks([]);
+              }}
+              className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
             >
               Cerrar sesión
             </button>
           ) : (
             <button
               onClick={signInWithGoogle}
-              className="rounded-2xl bg-pink-500 px-5 py-3 font-bold text-white"
+              className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
             >
               Iniciar con Google
             </button>
           )}
-          </header>
-
+        </header>
           <section className="mt-8 rounded-3xl border border-pink-100 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-black">Crear nueva tarea</h2>
 
