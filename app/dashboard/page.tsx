@@ -1,4 +1,5 @@
 "use client";
+
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react";
@@ -33,6 +34,7 @@ const initialTasks: Task[] = [
     status: "En progreso",
   },
 ];
+
 function suggestPriority(title: string): Task["priority"] {
   const text = title.toLowerCase();
 
@@ -64,29 +66,32 @@ export default function DashboardPage() {
   const [taskPriority, setTaskPriority] = useState<Task["priority"]>("Media");
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [aiMessage, setAiMessage] = useState("");
-
   const [isLoaded, setIsLoaded] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<Task["status"] | "Todas">(
+    "Todas"
+  );
 
-useEffect(() => {
-  const savedTasks = window.localStorage.getItem(STORAGE_KEY);
+  useEffect(() => {
+    const savedTasks = window.localStorage.getItem(STORAGE_KEY);
 
-  if (savedTasks) {
-    try {
-      const parsedTasks = JSON.parse(savedTasks) as Task[];
-      setTasks(parsedTasks);
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
+    if (savedTasks) {
+      try {
+        const parsedTasks = JSON.parse(savedTasks) as Task[];
+        setTasks(parsedTasks);
+      } catch {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
     }
-  }
 
-  setIsLoaded(true);
-}, []);
+    setIsLoaded(true);
+  }, []);
 
-useEffect(() => {
-  if (!isLoaded) return;
+  useEffect(() => {
+    if (!isLoaded) return;
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-}, [tasks, isLoaded]);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  }, [tasks, isLoaded]);
 
   function handleCreateTask() {
     if (!taskTitle.trim()) return;
@@ -105,18 +110,18 @@ useEffect(() => {
     setTaskPriority("Media");
     setAiMessage("");
   }
-  
+
   function handleSuggestPriority() {
-  if (!taskTitle.trim()) {
-    setAiMessage("Escribí primero el título de la tarea.");
-    return;
+    if (!taskTitle.trim()) {
+      setAiMessage("Escribí primero el título de la tarea.");
+      return;
+    }
+
+    const suggestedPriority = suggestPriority(taskTitle);
+
+    setTaskPriority(suggestedPriority);
+    setAiMessage(`Priora recomienda prioridad ${suggestedPriority}.`);
   }
-
-  const suggestedPriority = suggestPriority(taskTitle);
-
-  setTaskPriority(suggestedPriority);
-  setAiMessage(`Priora recomienda prioridad ${suggestedPriority}.`);
-}
 
   function handleUpdateTaskStatus(id: string, status: Task["status"]) {
     setTasks(
@@ -127,6 +132,17 @@ useEffect(() => {
   function handleDeleteTask(id: string) {
     setTasks(tasks.filter((task) => task.id !== id));
   }
+
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch =
+      task.title.toLowerCase().includes(search.toLowerCase()) ||
+      task.category.toLowerCase().includes(search.toLowerCase());
+
+    const matchesStatus =
+      filterStatus === "Todas" || task.status === filterStatus;
+
+    return matchesSearch && matchesStatus;
+  });
 
   const completedPercentage =
     tasks.length === 0
@@ -216,12 +232,14 @@ useEffect(() => {
                 <option value="Media">Media</option>
                 <option value="Baja">Baja</option>
               </select>
+
               <button
                 onClick={handleSuggestPriority}
                 className="rounded-2xl border border-pink-100 bg-white px-5 py-3 text-sm font-bold text-pink-500 shadow-sm hover:bg-pink-50"
               >
                 ✨ Sugerir
               </button>
+
               <button
                 onClick={handleCreateTask}
                 className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
@@ -229,6 +247,7 @@ useEffect(() => {
                 Crear tarea
               </button>
             </div>
+
             {aiMessage && (
               <p className="mt-3 rounded-2xl bg-pink-50 px-4 py-3 text-sm font-bold text-pink-500">
                 ✨ {aiMessage}
@@ -239,11 +258,37 @@ useEffect(() => {
           <StatsCards tasks={tasks} />
 
           <section className="mt-8 grid gap-6 xl:grid-cols-[1fr_380px]">
-            <TaskList
-              tasks={tasks}
-              onUpdateStatus={handleUpdateTaskStatus}
-              onDeleteTask={handleDeleteTask}
-            />
+            <div>
+              <section className="mb-6 flex flex-col gap-3 md:flex-row">
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Buscar tarea..."
+                  className="flex-1 rounded-2xl border border-pink-100 bg-white px-4 py-3 text-sm outline-none focus:border-pink-400"
+                />
+
+                <select
+                  value={filterStatus}
+                  onChange={(event) =>
+                    setFilterStatus(
+                      event.target.value as Task["status"] | "Todas"
+                    )
+                  }
+                  className="rounded-2xl border border-pink-100 bg-white px-4 py-3 text-sm outline-none focus:border-pink-400"
+                >
+                  <option value="Todas">Todas</option>
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="En progreso">En progreso</option>
+                  <option value="Finalizada">Finalizada</option>
+                </select>
+              </section>
+
+              <TaskList
+                tasks={filteredTasks}
+                onUpdateStatus={handleUpdateTaskStatus}
+                onDeleteTask={handleDeleteTask}
+              />
+            </div>
 
             <aside className="space-y-6">
               <AIWidget />
