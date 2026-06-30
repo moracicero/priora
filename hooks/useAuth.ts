@@ -1,10 +1,15 @@
 import { supabase } from "../lib/supabase";
 
+const redirectTo =
+  typeof window !== "undefined"
+    ? `${window.location.origin}/dashboard`
+    : undefined;
+
 export async function signInWithGoogle() {
   await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: "https://priora-ecru.vercel.app/dashboard",
+      redirectTo,
     },
   });
 }
