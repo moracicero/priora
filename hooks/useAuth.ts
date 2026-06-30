@@ -9,7 +9,7 @@ export async function signInWithGoogle() {
   });
 
   if (error) {
-    console.error(error);
+    console.error("Google login error:", error);
     alert(error.message);
   }
 }
@@ -19,22 +19,18 @@ export async function signOut() {
 }
 
 export async function getCurrentSessionUser() {
-  const hash = window.location.hash;
+  const url = new URL(window.location.href);
 
-  if (hash.includes("access_token")) {
-    const params = new URLSearchParams(hash.replace("#", ""));
+  if (url.searchParams.get("code")) {
+    const { error } = await supabase.auth.exchangeCodeForSession(
+      window.location.href
+    );
 
-    const accessToken = params.get("access_token");
-    const refreshToken = params.get("refresh_token");
-
-    if (accessToken && refreshToken) {
-      await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-
-      window.history.replaceState({}, document.title, "/dashboard");
+    if (error) {
+      console.error("Exchange code error:", error);
     }
+
+    window.history.replaceState({}, document.title, "/dashboard");
   }
 
   const {

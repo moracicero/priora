@@ -5,12 +5,14 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, LayoutDashboard, LogOut, User } from "lucide-react";
 import Link from "next/link";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 import {
   getCurrentSessionUser,
   signInWithGoogle,
   signOut,
 } from "@/hooks/useAuth";
+import { supabase } from "../../lib/supabase";
 import { AIWidget } from "../../components/dashboard/AIWidget";
 import { StatsCards } from "../../components/dashboard/StatsCards";
 import { TaskList } from "../../components/dashboard/TaskList";
@@ -21,14 +23,6 @@ import {
   getTasks,
   updateTaskStatus,
 } from "../../services/taskService";
-
-type UserProfile = {
-  email?: string;
-  user_metadata?: {
-    full_name?: string;
-    avatar_url?: string;
-  };
-};
 
 function suggestPriority(title: string): Task["priority"] {
   const text = title.toLowerCase();
@@ -65,7 +59,7 @@ export default function DashboardPage() {
   const [filterStatus, setFilterStatus] = useState<Task["status"] | "Todas">(
     "Todas"
   );
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
 
   async function loadTasks() {
     try {
@@ -88,6 +82,22 @@ export default function DashboardPage() {
     }
 
     fetchInitialData();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const loggedUser = session?.user ?? null;
+
+      setUser(loggedUser);
+
+      if (loggedUser) {
+        await loadTasks();
+      } else {
+        setTasks([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function handleCreateTask() {
@@ -133,6 +143,12 @@ export default function DashboardPage() {
   async function handleDeleteTask(id: string) {
     await deleteTask(id);
     await loadTasks();
+  }
+
+  async function handleLogout() {
+    await signOut();
+    setUser(null);
+    setTasks([]);
   }
 
   const filteredTasks = tasks.filter((task) => {
@@ -181,37 +197,33 @@ export default function DashboardPage() {
           </div>
 
           <nav className="mt-10 space-y-2">
-          <Link
-            href="/dashboard"
-            className="flex w-full items-center gap-3 rounded-2xl bg-pink-50 px-4 py-3 text-sm font-bold text-pink-500"
-          >
-            <LayoutDashboard size={18} />
-            Dashboard
-          </Link>
+            <Link
+              href="/dashboard"
+              className="flex w-full items-center gap-3 rounded-2xl bg-pink-50 px-4 py-3 text-sm font-bold text-pink-500"
+            >
+              <LayoutDashboard size={18} />
+              Dashboard
+            </Link>
 
-          <Link
-            href="/tasks"
-            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500"
-          >
-            <CheckCircle2 size={18} />
-            Tareas
-          </Link>
+            <Link
+              href="/tasks"
+              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+            >
+              <CheckCircle2 size={18} />
+              Tareas
+            </Link>
 
-          <Link
-            href="/profile"
-            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500"
-          >
-            <User size={18} />
-            Perfil
-          </Link>
+            <Link
+              href="/profile"
+              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+            >
+              <User size={18} />
+              Perfil
+            </Link>
           </nav>
 
           <button
-            onClick={async () => {
-              await signOut();
-              setUser(null);
-              setTasks([]);
-            }}
+            onClick={handleLogout}
             className="mt-10 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-pink-50 hover:text-pink-500"
           >
             <LogOut size={18} />
@@ -249,11 +261,7 @@ export default function DashboardPage() {
 
             {user ? (
               <button
-                onClick={async () => {
-                  await signOut();
-                  setUser(null);
-                  setTasks([]);
-                }}
+                onClick={handleLogout}
                 className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
               >
                 Cerrar sesión
