@@ -6,7 +6,11 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, LayoutDashboard, LogOut, User } from "lucide-react";
 import Link from "next/link";
 
-import { getCurrentUser, signInWithGoogle, signOut } from "@/hooks/useAuth";
+import {
+  getCurrentSessionUser,
+  signInWithGoogle,
+  signOut,
+} from "@/hooks/useAuth";
 import { AIWidget } from "../../components/dashboard/AIWidget";
 import { StatsCards } from "../../components/dashboard/StatsCards";
 import { TaskList } from "../../components/dashboard/TaskList";
@@ -75,7 +79,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchInitialData() {
-      const currentUser = await getCurrentUser();
+      const currentUser = await getCurrentSessionUser();
       setUser(currentUser);
 
       if (currentUser) {

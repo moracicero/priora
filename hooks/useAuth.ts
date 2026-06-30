@@ -1,21 +1,31 @@
 import { supabase } from "../lib/supabase";
 
-const redirectTo =
-  typeof window !== "undefined"
-    ? `${window.location.origin}/dashboard`
-    : undefined;
-
 export async function signInWithGoogle() {
-  await supabase.auth.signInWithOAuth({
+  const redirectTo = `${window.location.origin}/dashboard`;
+
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo,
     },
   });
+
+  if (error) {
+    console.error("Google login error:", error);
+    alert(error.message);
+  }
 }
 
 export async function signOut() {
   await supabase.auth.signOut();
+}
+
+export async function getCurrentSessionUser() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  return session?.user ?? null;
 }
 
 export async function getCurrentUser() {
