@@ -1,9 +1,6 @@
-import { access } from "fs";
 import { supabase } from "../lib/supabase";
 
 export async function signInWithGoogle() {
-  await supabase.auth.signOut(); // Ensure the user is signed out before signing in with Google
-
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -25,17 +22,17 @@ export async function signOut() {
 }
 
 export async function getCurrentSessionUser() {
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get("code");
+
+  if (code) {
+    await supabase.auth.exchangeCodeForSession(code);
+    window.history.replaceState({}, document.title, "/dashboard");
+  }
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  if (session?.user) {
-    return session.user;
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  return user ?? null;
+  return session?.user ?? null;
 }
