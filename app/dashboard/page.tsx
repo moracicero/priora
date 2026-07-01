@@ -13,7 +13,6 @@ import {
   signOut,
 } from "@/hooks/useAuth";
 import { supabase } from "../../lib/supabase";
-import { AIWidget } from "../../components/dashboard/AIWidget";
 import { StatsCards } from "../../components/dashboard/StatsCards";
 import { TaskList } from "../../components/dashboard/TaskList";
 import type { Task } from "../../types/task";
@@ -50,6 +49,7 @@ function suggestPriority(title: string): Task["priority"] {
 }
 
 export default function DashboardPage() {
+  const [loading, setLoading] = useState(true);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskCategory, setTaskCategory] = useState("General");
   const [taskPriority, setTaskPriority] = useState<Task["priority"]>("Media");
@@ -72,65 +72,67 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-  async function fetchInitialData() {
-    const currentUser = await getCurrentSessionUser();
+    async function fetchInitialData() {
+      try {
+        const currentUser = await getCurrentSessionUser();
+        setUser(currentUser);
+
+        if (currentUser) {
+          const data = await getTasks();
+          setTasks(data);
+        } else {
+          setTasks([]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchInitialData();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const loggedUser = session?.user ?? null;
+      setUser(loggedUser);
+
+      if (loggedUser) {
+        const data = await getTasks();
+        setTasks(data);
+      } else {
+        setTasks([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleCreateTask() {
+    const currentUser = user ?? (await getCurrentSessionUser());
+
+    if (!currentUser) {
+      setAiMessage("Iniciá sesión con Google para crear tareas.");
+      return;
+    }
 
     setUser(currentUser);
 
-    if (currentUser) {
-      const data = await getTasks();
-      setTasks(data);
-    } else {
-      setTasks([]);
-    }
+    if (!taskTitle.trim()) return;
+
+    await createTask({
+      title: taskTitle,
+      category: taskCategory || "General",
+      priority: taskPriority,
+      status: "Pendiente",
+    });
+
+    await loadTasks();
+
+    setTaskTitle("");
+    setTaskCategory("General");
+    setTaskPriority("Media");
+    setAiMessage("");
   }
-
-  fetchInitialData();
-
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange(async (_event, session) => {
-    const loggedUser = session?.user ?? null;
-
-    setUser(loggedUser);
-
-    if (loggedUser) {
-      const data = await getTasks();
-      setTasks(data);
-    } else {
-      setTasks([]);
-    }
-  });
-
-  return () => subscription.unsubscribe();
-}, []);
-
-  async function handleCreateTask() {
-  const currentUser = user ?? (await getCurrentSessionUser());
-
-  if (!currentUser) {
-    setAiMessage("Iniciá sesión con Google para crear tareas.");
-    return;
-  }
-
-  setUser(currentUser);
-
-  if (!taskTitle.trim()) return;
-
-  await createTask({
-    title: taskTitle,
-    category: taskCategory || "General",
-    priority: taskPriority,
-    status: "Pendiente",
-  });
-
-  await loadTasks();
-
-  setTaskTitle("");
-  setTaskCategory("General");
-  setTaskPriority("Media");
-  setAiMessage("");
-}
 
   function handleSuggestPriority() {
     if (!taskTitle.trim()) {
@@ -139,7 +141,6 @@ export default function DashboardPage() {
     }
 
     const suggestedPriority = suggestPriority(taskTitle);
-
     setTaskPriority(suggestedPriority);
     setAiMessage(`Priora recomienda prioridad ${suggestedPriority}.`);
   }
@@ -150,6 +151,12 @@ export default function DashboardPage() {
   }
 
   async function handleDeleteTask(id: string) {
+    const confirmDelete = window.confirm(
+      "¿Estás seguro de que querés eliminar esta tarea?"
+    );
+
+    if (!confirmDelete) return;
+
     await deleteTask(id);
     await loadTasks();
   }
@@ -158,6 +165,7 @@ export default function DashboardPage() {
     await signOut();
     setUser(null);
     setTasks([]);
+    window.location.href = "/";
   }
 
   const filteredTasks = tasks.filter((task) => {
@@ -179,16 +187,18 @@ export default function DashboardPage() {
             tasks.length) *
             100
         );
-        const highPriority = tasks.filter((task) => task.priority === "Alta").length;
 
-const smartAdvice =
-  tasks.length === 0
-    ? "Creá tu primera tarea para empezar a organizar tu día."
-    : highPriority > 0
-      ? `Tenés ${highPriority} tarea(s) de prioridad alta. Te recomiendo empezar por esas.`
-      : completedPercentage >= 70
-        ? "Vas muy bien. Estás cerca de cerrar tus tareas pendientes."
-        : "Buen momento para avanzar con una tarea pendiente.";
+  const highPriority = tasks.filter((task) => task.priority === "Alta").length;
+
+  const smartAdvice =
+    tasks.length === 0
+      ? "Creá tu primera tarea para empezar a organizar tu día."
+      : highPriority > 0
+        ? `Tenés ${highPriority} tarea(s) de prioridad alta. Te recomiendo empezar por esas.`
+        : completedPercentage >= 70
+          ? "Vas muy bien. Estás cerca de cerrar tus tareas pendientes."
+          : "Buen momento para avanzar con una tarea pendiente.";
+
   const progressMessage =
     tasks.length === 0
       ? "Creá tu primera tarea para empezar a organizar tu día."
@@ -202,6 +212,14 @@ const smartAdvice =
 
   const userName = user?.user_metadata?.full_name || "Usuario";
   const userAvatar = user?.user_metadata?.avatar_url;
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#FFF9FB]">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500" />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
@@ -383,13 +401,13 @@ const smartAdvice =
 
             <aside className="space-y-6">
               <article className="rounded-3xl bg-gradient-to-r from-pink-500 to-rose-400 p-6 text-white shadow-lg shadow-pink-200">
-  <div className="flex items-center gap-2 text-lg font-black">
-    ✨ Consejo Priora
-  </div>
-  <p className="mt-3 text-sm leading-6 text-pink-50">
-    {smartAdvice}
-  </p>
-</article>
+                <div className="flex items-center gap-2 text-lg font-black">
+                  ✨ Consejo Priora
+                </div>
+                <p className="mt-3 text-sm leading-6 text-pink-50">
+                  {smartAdvice}
+                </p>
+              </article>
 
               <article className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-black">Progreso semanal</h2>

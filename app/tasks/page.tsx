@@ -3,7 +3,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, Circle, Clock3, LoaderCircle, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  LoaderCircle,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 
 import { AppShell } from "../../components/layout/AppShell";
 import type { Task } from "../../types/task";
@@ -16,7 +22,7 @@ import { getCurrentSessionUser } from "../../hooks/useAuth";
 
 const columns: {
   title: Task["status"];
-  icon: typeof Circle;
+  icon: LucideIcon;
   description: string;
 }[] = [
   {
@@ -43,6 +49,7 @@ const priorityStyles = {
 };
 
 export default function TasksPage() {
+  const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
 
   async function loadTasks() {
@@ -58,8 +65,15 @@ export default function TasksPage() {
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadTasks();
+    async function fetchTasks() {
+      try {
+        await loadTasks();
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTasks();
   }, []);
 
   async function handleUpdateTaskStatus(id: string, status: Task["status"]) {
@@ -68,8 +82,22 @@ export default function TasksPage() {
   }
 
   async function handleDeleteTask(id: string) {
+    const confirmDelete = window.confirm(
+      "¿Estás seguro de que querés eliminar esta tarea?"
+    );
+
+    if (!confirmDelete) return;
+
     await deleteTask(id);
     await loadTasks();
+  }
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#FFF9FB]">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500" />
+      </main>
+    );
   }
 
   return (
@@ -81,21 +109,26 @@ export default function TasksPage() {
           Visualizá tus tareas separadas por estado para entender rápidamente en
           qué avanzar.
         </p>
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
-  {columns.map((column) => {
-    const count = tasks.filter((task) => task.status === column.title).length;
 
-    return (
-      <article
-        key={column.title}
-        className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-5"
-      >
-        <p className="text-sm font-bold text-pink-500">{column.title}</p>
-        <h2 className="mt-2 text-4xl font-black">{count}</h2>
-      </article>
-    );
-  })}
-</section>
+        <section className="mt-8 grid gap-4 md:grid-cols-3">
+          {columns.map((column) => {
+            const count = tasks.filter(
+              (task) => task.status === column.title
+            ).length;
+
+            return (
+              <article
+                key={column.title}
+                className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-5"
+              >
+                <p className="text-sm font-bold text-pink-500">
+                  {column.title}
+                </p>
+                <h2 className="mt-2 text-4xl font-black">{count}</h2>
+              </article>
+            );
+          })}
+        </section>
 
         <section className="mt-8 grid gap-5 xl:grid-cols-3">
           {columns.map((column) => {
@@ -129,8 +162,12 @@ export default function TasksPage() {
 
                 <div className="grid gap-3">
                   {columnTasks.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-pink-200 bg-white p-5 text-center text-sm font-bold text-slate-400">
-                      Sin tareas
+                    <div className="rounded-3xl border border-dashed border-pink-200 bg-white p-8 text-center">
+                      <p className="text-5xl">📭</p>
+                      <h3 className="mt-4 font-black">No hay tareas</h3>
+                      <p className="mt-2 text-sm text-slate-500">
+                        Creá una nueva tarea desde el Dashboard.
+                      </p>
                     </div>
                   ) : (
                     columnTasks.map((task) => (
