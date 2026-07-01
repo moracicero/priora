@@ -3,8 +3,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useState } from "react";
+import { CheckCircle2, Circle, Clock3, LoaderCircle, Trash2 } from "lucide-react";
+
 import { AppShell } from "../../components/layout/AppShell";
-import { TaskList } from "../../components/dashboard/TaskList";
 import type { Task } from "../../types/task";
 import {
   deleteTask,
@@ -13,12 +14,36 @@ import {
 } from "../../services/taskService";
 import { getCurrentSessionUser } from "../../hooks/useAuth";
 
+const columns: {
+  title: Task["status"];
+  icon: typeof Circle;
+  description: string;
+}[] = [
+  {
+    title: "Pendiente",
+    icon: Clock3,
+    description: "Tareas que todavía no empezaste.",
+  },
+  {
+    title: "En progreso",
+    icon: LoaderCircle,
+    description: "Tareas en las que estás trabajando.",
+  },
+  {
+    title: "Finalizada",
+    icon: CheckCircle2,
+    description: "Tareas que ya completaste.",
+  },
+];
+
+const priorityStyles = {
+  Alta: "bg-rose-50 text-rose-500",
+  Media: "bg-amber-50 text-amber-500",
+  Baja: "bg-emerald-50 text-emerald-500",
+};
+
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<Task["status"] | "Todas">(
-    "Todas"
-  );
 
   async function loadTasks() {
     const user = await getCurrentSessionUser();
@@ -47,54 +72,107 @@ export default function TasksPage() {
     await loadTasks();
   }
 
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch =
-      task.title.toLowerCase().includes(search.toLowerCase()) ||
-      task.category.toLowerCase().includes(search.toLowerCase());
-
-    const matchesStatus =
-      filterStatus === "Todas" || task.status === filterStatus;
-
-    return matchesSearch && matchesStatus;
-  });
-
   return (
     <AppShell>
       <section className="rounded-3xl border border-pink-100 bg-white p-8 shadow-sm">
         <p className="font-bold text-pink-500">Tareas</p>
         <h1 className="mt-2 text-4xl font-black">Mis tareas</h1>
         <p className="mt-3 text-slate-500">
-          Administrá todas tus tareas, cambiá estados y organizá tus prioridades.
+          Visualizá tus tareas separadas por estado para entender rápidamente en
+          qué avanzar.
         </p>
 
-        <section className="mt-8 flex flex-col gap-3 md:flex-row">
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar tarea..."
-            className="flex-1 rounded-2xl border border-pink-100 bg-[#FFF9FB] px-4 py-3 text-sm outline-none focus:border-pink-400"
-          />
+        <section className="mt-8 grid gap-5 xl:grid-cols-3">
+          {columns.map((column) => {
+            const Icon = column.icon;
+            const columnTasks = tasks.filter(
+              (task) => task.status === column.title
+            );
 
-          <select
-            value={filterStatus}
-            onChange={(event) =>
-              setFilterStatus(event.target.value as Task["status"] | "Todas")
-            }
-            className="rounded-2xl border border-pink-100 bg-[#FFF9FB] px-4 py-3 text-sm outline-none focus:border-pink-400"
-          >
-            <option value="Todas">Todas</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="En progreso">En progreso</option>
-            <option value="Finalizada">Finalizada</option>
-          </select>
-        </section>
+            return (
+              <article
+                key={column.title}
+                className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-5"
+              >
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Icon size={18} className="text-pink-500" />
+                      <h2 className="font-black text-slate-900">
+                        {column.title}
+                      </h2>
+                    </div>
+                    <p className="mt-2 text-sm text-slate-500">
+                      {column.description}
+                    </p>
+                  </div>
 
-        <section className="mt-8">
-          <TaskList
-            tasks={filteredTasks}
-            onUpdateStatus={handleUpdateTaskStatus}
-            onDeleteTask={handleDeleteTask}
-          />
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-pink-500">
+                    {columnTasks.length}
+                  </span>
+                </div>
+
+                <div className="grid gap-3">
+                  {columnTasks.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-pink-200 bg-white p-5 text-center text-sm font-bold text-slate-400">
+                      Sin tareas
+                    </div>
+                  ) : (
+                    columnTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="rounded-2xl border border-pink-100 bg-white p-4 shadow-sm"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="font-black text-slate-900">
+                              {task.title}
+                            </h3>
+                            <p className="mt-1 text-sm text-slate-500">
+                              {task.category}
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="rounded-full bg-pink-50 p-2 text-slate-400 hover:text-rose-500"
+                            aria-label="Eliminar tarea"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-black ${
+                              priorityStyles[task.priority]
+                            }`}
+                          >
+                            {task.priority}
+                          </span>
+
+                          <select
+                            value={task.status}
+                            onChange={(event) =>
+                              handleUpdateTaskStatus(
+                                task.id,
+                                event.target.value as Task["status"]
+                              )
+                            }
+                            className="rounded-full border border-pink-100 bg-[#FFF9FB] px-3 py-1 text-xs font-black text-slate-500 outline-none"
+                          >
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En progreso">En progreso</option>
+                            <option value="Finalizada">Finalizada</option>
+                          </select>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </section>
       </section>
     </AppShell>
