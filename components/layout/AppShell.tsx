@@ -16,10 +16,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   async function handleLogout() {
-    await signOut();
-    router.push("/dashboard");
-    router.refresh();
-  }
+  await signOut();
+  router.push("/");
+  router.refresh();
+}
 
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
