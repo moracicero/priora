@@ -1,32 +1,34 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 
 export default function AuthCallbackPage() {
-  const router = useRouter();
-
   useEffect(() => {
-    async function handleAuthCallback() {
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get("code");
+    async function handleCallback() {
+      const searchParams = new URLSearchParams(window.location.search);
+      const code = searchParams.get("code");
 
       if (code) {
-        await supabase.auth.exchangeCodeForSession(code);
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          console.error("Auth callback error:", error);
+          alert(error.message);
+          window.location.replace("/");
+          return;
+        }
       }
 
-      router.replace("/dashboard");
+      window.location.replace("/dashboard");
     }
 
-    handleAuthCallback();
-  }, [router]);
+    handleCallback();
+  }, []);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#FFF9FB] text-slate-900">
-      <p className="text-lg font-bold text-pink-500">
-        Iniciando sesión...
-      </p>
+    <main className="flex min-h-screen items-center justify-center bg-[#FFF9FB]">
+      <p className="text-lg font-bold text-pink-500">Iniciando sesión...</p>
     </main>
   );
 }
