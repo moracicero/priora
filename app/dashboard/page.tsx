@@ -3,7 +3,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, LayoutDashboard, LogOut, User } from "lucide-react";
+import {
+  CheckCircle2,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  User,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -50,6 +57,7 @@ function suggestPriority(title: string): Task["priority"] {
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskCategory, setTaskCategory] = useState("General");
   const [taskPriority, setTaskPriority] = useState<Task["priority"]>("Media");
@@ -223,6 +231,62 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
+      <header className="sticky top-0 z-50 border-b border-pink-100 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+  <div className="flex items-center justify-between">
+    <Link href="/dashboard" className="flex items-center gap-2">
+      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 text-white">
+        ✓
+      </div>
+      <span className="text-xl font-black">Priora</span>
+    </Link>
+
+    <button
+      onClick={() => setIsMenuOpen((prev) => !prev)}
+      className="rounded-2xl bg-pink-50 p-3 text-pink-500"
+    >
+      {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
+    </button>
+  </div>
+
+  {isMenuOpen && (
+    <nav className="mt-4 grid gap-2 rounded-3xl border border-pink-100 bg-white p-3 shadow-lg shadow-pink-100">
+      <Link
+        href="/dashboard"
+        onClick={() => setIsMenuOpen(false)}
+        className="flex items-center gap-3 rounded-2xl bg-pink-50 px-4 py-3 text-sm font-black text-pink-500"
+      >
+        <LayoutDashboard size={18} />
+        Dashboard
+      </Link>
+
+      <Link
+        href="/tasks"
+        onClick={() => setIsMenuOpen(false)}
+        className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+      >
+        <CheckCircle2 size={18} />
+        Tareas
+      </Link>
+
+      <Link
+        href="/profile"
+        onClick={() => setIsMenuOpen(false)}
+        className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+      >
+        <User size={18} />
+        Perfil
+      </Link>
+
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+      >
+        <LogOut size={18} />
+        Cerrar sesión
+      </button>
+    </nav>
+  )}
+</header>
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
         <aside className="hidden border-r border-pink-100 bg-white/80 p-6 lg:block">
           <div className="flex items-center gap-3">
