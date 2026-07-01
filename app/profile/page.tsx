@@ -45,6 +45,7 @@ export default function ProfilePage() {
   const done = tasks.filter((task) => task.status === "Finalizada").length;
   const highPriority = tasks.filter((task) => task.priority === "Alta").length;
   const percentage = total === 0 ? 0 : Math.round((done / total) * 100);
+  
 
   const favoriteCategory =
     tasks.length === 0
@@ -153,6 +154,30 @@ export default function ProfilePage() {
             <h2 className="mt-2 text-4xl font-black">{percentage}%</h2>
           </article>
         </section>
+        <section className="mt-8 rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
+  <h2 className="text-2xl font-black">Logros</h2>
+  <p className="mt-2 text-sm text-slate-500">
+    Reconocimientos generados según tu actividad en Priora.
+  </p>
+
+  <div className="mt-5 grid gap-4 md:grid-cols-4">
+    {[
+      ["🏁", "Primer paso", total > 0 ? "Desbloqueado" : "Creá tu primera tarea"],
+      ["🔥", "Alta prioridad", highPriority > 0 ? "Desbloqueado" : "Sin tareas altas"],
+      ["✅", "Productividad", done > 0 ? "Desbloqueado" : "Completá una tarea"],
+      ["🎯", "Constancia", percentage >= 70 ? "Desbloqueado" : "Llegá al 70%"],
+    ].map(([icon, title, text]) => (
+      <article
+        key={title}
+        className="rounded-2xl border border-pink-100 bg-white p-4"
+      >
+        <p className="text-3xl">{icon}</p>
+        <h3 className="mt-3 font-black">{title}</h3>
+        <p className="mt-1 text-sm text-slate-500">{text}</p>
+      </article>
+    ))}
+  </div>
+</section>
 
         <section className="mt-8 grid gap-5 lg:grid-cols-[1fr_360px]">
           <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">

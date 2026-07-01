@@ -81,6 +81,21 @@ export default function TasksPage() {
           Visualizá tus tareas separadas por estado para entender rápidamente en
           qué avanzar.
         </p>
+        <section className="mt-8 grid gap-4 md:grid-cols-3">
+  {columns.map((column) => {
+    const count = tasks.filter((task) => task.status === column.title).length;
+
+    return (
+      <article
+        key={column.title}
+        className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-5"
+      >
+        <p className="text-sm font-bold text-pink-500">{column.title}</p>
+        <h2 className="mt-2 text-4xl font-black">{count}</h2>
+      </article>
+    );
+  })}
+</section>
 
         <section className="mt-8 grid gap-5 xl:grid-cols-3">
           {columns.map((column) => {

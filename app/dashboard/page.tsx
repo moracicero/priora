@@ -174,7 +174,16 @@ export default function DashboardPage() {
             tasks.length) *
             100
         );
+        const highPriority = tasks.filter((task) => task.priority === "Alta").length;
 
+const smartAdvice =
+  tasks.length === 0
+    ? "Creá tu primera tarea para empezar a organizar tu día."
+    : highPriority > 0
+      ? `Tenés ${highPriority} tarea(s) de prioridad alta. Te recomiendo empezar por esas.`
+      : completedPercentage >= 70
+        ? "Vas muy bien. Estás cerca de cerrar tus tareas pendientes."
+        : "Buen momento para avanzar con una tarea pendiente.";
   const progressMessage =
     tasks.length === 0
       ? "Creá tu primera tarea para empezar a organizar tu día."
@@ -368,7 +377,14 @@ export default function DashboardPage() {
             </div>
 
             <aside className="space-y-6">
-              <AIWidget />
+              <article className="rounded-3xl bg-gradient-to-r from-pink-500 to-rose-400 p-6 text-white shadow-lg shadow-pink-200">
+  <div className="flex items-center gap-2 text-lg font-black">
+    ✨ Consejo Priora
+  </div>
+  <p className="mt-3 text-sm leading-6 text-pink-50">
+    {smartAdvice}
+  </p>
+</article>
 
               <article className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-black">Progreso semanal</h2>
