@@ -1,36 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌸 Priora
 
-## Getting Started
+<div align="center">
 
-First, run the development server:
+### Plataforma inteligente para la gestión de tareas con priorización asistida por IA
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Aplicación web desarrollada con **Next.js**, **TypeScript** y **Supabase**, que permite organizar tareas, clasificarlas por prioridad y gestionar el progreso personal mediante autenticación con Google.
+
+**Deploy:** https://priora-ecru.vercel.app/
+
+</div>
+
+---
+
+# 📷 Capturas
+
+> Agregar aquí capturas de:
+
+- Landing
+- Dashboard
+- Mis tareas
+- Perfil
+
+---
+
+# 🚀 Funcionalidades
+
+✅ Inicio de sesión con Google
+
+✅ Persistencia de sesión
+
+✅ Gestión de tareas
+
+- Crear
+- Eliminar
+- Cambiar estado
+
+✅ Organización por estados
+
+- Pendiente
+- En progreso
+- Finalizada
+
+✅ Dashboard interactivo
+
+- Métricas generales
+- Consejos inteligentes
+- Estadísticas
+
+✅ Perfil de usuario
+
+- Información personal
+- Nivel de productividad
+- Logros
+- Barra de progreso
+- Métricas
+
+✅ Persistencia de datos mediante Supabase
+
+✅ Diseño responsive
+
+---
+
+# 🛠 Tecnologías
+
+- Next.js 16
+- React
+- TypeScript
+- Tailwind CSS
+- Supabase
+- Google OAuth
+- Vercel
+- Lucide React
+
+---
+
+# 🧠 Funcionalidad IA
+
+Priora incorpora un sistema de sugerencias inteligentes que analiza la información de las tareas para recomendar prioridades y brindar consejos de productividad según el avance del usuario.
+
+---
+
+# 📂 Estructura
+
+```
+app/
+components/
+hooks/
+lib/
+services/
+types/
+public/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# ⚙️ Instalación
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git clone https://github.com/moracicero/priora.git
 
-## Learn More
+cd priora
 
-To learn more about Next.js, take a look at the following resources:
+npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+# 🌐 Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+La aplicación se encuentra desplegada en:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+https://priora-ecru.vercel.app/
+
+---
+
+# 👩‍💻 Autora
+
+**Mora Cicero**
+
+Tecnicatura Universitaria en Desarrollo Web
+
+Universidad Nacional de La Matanza
+
+---
+
+# 📄 Licencia
+
+Proyecto desarrollado con fines educativos.
