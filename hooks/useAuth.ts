@@ -4,7 +4,7 @@ export async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/dashboard`,
+      redirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 
@@ -23,5 +23,13 @@ export async function getCurrentSessionUser() {
     data: { session },
   } = await supabase.auth.getSession();
 
-  return session?.user ?? null;
+  if (session?.user) {
+    return session.user;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return user ?? null;
 }

@@ -6,7 +6,15 @@ async function getUserId() {
     data: { session },
   } = await supabase.auth.getSession();
 
-  return session?.user?.id ?? null;
+  if (session?.user?.id) {
+    return session.user.id;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return user?.id ?? null;
 }
 
 export async function getTasks() {
