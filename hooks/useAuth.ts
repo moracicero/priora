@@ -18,6 +18,7 @@ export async function signInWithGoogle() {
 }
 
 export async function signOut() {
+  sessionStorage.removeItem("priora_oauth_reloaded");
   await supabase.auth.signOut();
 }
 
@@ -26,9 +27,14 @@ export async function getCurrentSessionUser() {
   const code = url.searchParams.get("code");
 
   if (code) {
-    await supabase.auth.exchangeCodeForSession(code);
-    window.history.replaceState({}, document.title, "/dashboard");
+  await supabase.auth.exchangeCodeForSession(code);
+  window.history.replaceState({}, document.title, "/dashboard");
+
+  if (!sessionStorage.getItem("priora_oauth_reloaded")) {
+    sessionStorage.setItem("priora_oauth_reloaded", "true");
+    window.location.reload();
   }
+}
 
   const {
     data: { session },
