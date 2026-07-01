@@ -1,8 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CheckCircle2, LayoutDashboard, LogOut, User } from "lucide-react";
+import {
+  CheckCircle2,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  User,
+  X,
+} from "lucide-react";
 import { signOut } from "../../hooks/useAuth";
 
 const links = [
@@ -14,6 +22,7 @@ const links = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   async function handleLogout() {
     await signOut();
@@ -24,41 +33,55 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
       <header className="sticky top-0 z-50 border-b border-pink-100 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 text-white">
+        <div className="flex items-center justify-between">
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 text-white">
               ✓
             </div>
             <span className="text-xl font-black">Priora</span>
-          </div>
+          </Link>
 
           <button
-            onClick={handleLogout}
-            className="rounded-2xl bg-pink-50 px-3 py-2 text-xs font-black text-pink-500"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="rounded-2xl bg-pink-50 p-3 text-pink-500"
+            aria-label="Abrir menú"
           >
-            Salir
+            {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
 
-        <nav className="grid grid-cols-3 gap-2">
-          {links.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href;
+        {isMenuOpen && (
+          <nav className="mt-4 grid gap-2 rounded-3xl border border-pink-100 bg-white p-3 shadow-lg shadow-pink-100">
+            {links.map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.href;
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center justify-center gap-1 rounded-2xl px-2 py-2 text-xs font-black ${
-                  active ? "bg-pink-50 text-pink-500" : "text-slate-500"
-                }`}
-              >
-                <Icon size={15} />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black ${
+                    active
+                      ? "bg-pink-50 text-pink-500"
+                      : "text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+                  }`}
+                >
+                  <Icon size={18} />
+                  {item.label}
+                </Link>
+              );
+            })}
+
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-slate-500 hover:bg-pink-50 hover:text-pink-500"
+            >
+              <LogOut size={18} />
+              Cerrar sesión
+            </button>
+          </nav>
+        )}
       </header>
 
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
