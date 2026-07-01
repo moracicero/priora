@@ -5,9 +5,9 @@ import { supabase } from "../../../lib/supabase";
 
 export default function AuthCallbackPage() {
   useEffect(() => {
-    async function handleCallback() {
-      const searchParams = new URLSearchParams(window.location.search);
-      const code = searchParams.get("code");
+    async function handleAuthCallback() {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get("code");
 
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -23,11 +23,11 @@ export default function AuthCallbackPage() {
       window.location.replace("/dashboard");
     }
 
-    handleCallback();
+    handleAuthCallback();
   }, []);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#FFF9FB]">
+    <main className="flex min-h-screen items-center justify-center bg-[#FFF9FB] text-slate-900">
       <p className="text-lg font-bold text-pink-500">Iniciando sesión...</p>
     </main>
   );
