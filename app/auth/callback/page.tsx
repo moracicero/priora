@@ -22,7 +22,6 @@ export default function AuthCallbackPage() {
 
           if (error) {
             console.error("Set session error:", error);
-            alert(error.message);
             window.location.replace("/");
             return;
           }
