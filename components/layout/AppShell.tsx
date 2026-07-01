@@ -63,8 +63,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </aside>
 
-        <section className="p-6 lg:p-10">{children}</section>
+        <section className="pb-28 p-6 lg:p-10 lg:pb-10">{children}</section>
       </div>
+
+      <nav className="fixed bottom-4 left-1/2 z-50 flex w-[92%] -translate-x-1/2 items-center justify-between rounded-3xl border border-pink-100 bg-white/95 p-3 shadow-2xl shadow-pink-100 backdrop-blur lg:hidden">
+        {links.map((item) => {
+          const Icon = item.icon;
+          const active = pathname === item.href;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-xs font-black ${
+                active ? "bg-pink-50 text-pink-500" : "text-slate-400"
+              }`}
+            >
+              <Icon size={18} />
+              {item.label}
+            </Link>
+          );
+        })}
+
+        <button
+          onClick={handleLogout}
+          className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-xs font-black text-slate-400"
+        >
+          <LogOut size={18} />
+          Salir
+        </button>
+      </nav>
     </main>
   );
 }
