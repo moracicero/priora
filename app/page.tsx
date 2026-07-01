@@ -2,6 +2,7 @@
 
 import { ArrowRight, Check, ListChecks, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { signInWithGoogle } from "../hooks/useAuth"; 
 
 export default function Home() {
   return (
@@ -15,12 +16,12 @@ export default function Home() {
             <span className="text-2xl font-bold tracking-tight">Priora</span>
           </div>
 
-          <Link
-            href="/dashboard"
-            className="rounded-2xl border border-pink-100 bg-white px-6 py-3 text-sm font-semibold text-pink-500 shadow-md shadow-pink-100 hover:bg-pink-50"
-          >
-            Entrar
-          </Link>
+          <button
+  onClick={signInWithGoogle}
+  className="rounded-2xl border border-pink-100 bg-white px-6 py-3 text-sm font-semibold text-pink-500 shadow-md shadow-pink-100 hover:bg-pink-50"
+>
+  Iniciar sesión
+</button>
         </nav>
 
         <div className="grid flex-1 items-center gap-14 py-16 lg:grid-cols-2">
@@ -43,13 +44,12 @@ export default function Home() {
             </p>
 
             <div className="mt-9">
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-7 py-4 text-sm font-bold text-white shadow-xl shadow-pink-200 hover:opacity-95"
-              >
-                Comenzar ahora
-                <ArrowRight size={18} />
-              </Link>
+              <button
+              onClick={signInWithGoogle}
+              className="inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-7 py-4 text-sm font-bold text-white shadow-xl shadow-pink-200 hover:opacity-95"
+            >
+              Comenzar ahora
+            </button>
             </div>
           </section>
 

@@ -10,7 +10,6 @@ export async function signInWithGoogle() {
       redirectTo: `${window.location.origin}/dashboard`,
       queryParams: {
         prompt: "select_account",
-        access_type: "offline",
       },
     },
   });
