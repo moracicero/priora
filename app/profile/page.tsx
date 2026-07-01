@@ -1,10 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useState } from "react";
-import { Mail, CheckCircle2, Clock3, LoaderCircle, LogOut } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  LoaderCircle,
+  LogOut,
+  Mail,
+  Sparkles,
+  Target,
+} from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 
 import { AppShell } from "../../components/layout/AppShell";
 import { getCurrentSessionUser, signOut } from "../../hooks/useAuth";
@@ -12,13 +20,12 @@ import { getTasks } from "../../services/taskService";
 import type { Task } from "../../types/task";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
-    async function loadData() {
+    async function loadProfile() {
       const currentUser = await getCurrentSessionUser();
-
       setUser(currentUser);
 
       if (currentUser) {
@@ -27,130 +34,130 @@ export default function ProfilePage() {
       }
     }
 
-    loadData();
+    loadProfile();
   }, []);
 
   const total = tasks.length;
-  const pending = tasks.filter((t) => t.status === "Pendiente").length;
-  const progress = tasks.filter((t) => t.status === "En progreso").length;
-  const completed = tasks.filter((t) => t.status === "Finalizada").length;
+  const pending = tasks.filter((task) => task.status === "Pendiente").length;
+  const inProgress = tasks.filter(
+    (task) => task.status === "En progreso"
+  ).length;
+  const done = tasks.filter((task) => task.status === "Finalizada").length;
 
-  const percentage =
-    total === 0 ? 0 : Math.round((completed / total) * 100);
+  const percentage = total === 0 ? 0 : Math.round((done / total) * 100);
+
+  const userName = user?.user_metadata?.full_name || "Invitada";
+  const userEmail = user?.email || "Sin sesión iniciada";
+  const userAvatar = user?.user_metadata?.avatar_url;
 
   async function handleLogout() {
     await signOut();
-    window.location.href = "/dashboard";
+    window.location.href = "/";
   }
 
   return (
     <AppShell>
       <section className="rounded-3xl border border-pink-100 bg-white p-8 shadow-sm">
+        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+          <div className="flex items-center gap-5">
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt={userName}
+                className="h-24 w-24 rounded-3xl object-cover shadow-lg shadow-pink-100"
+              />
+            ) : (
+              <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-pink-100 text-4xl font-black text-pink-500">
+                {userName.charAt(0)}
+              </div>
+            )}
 
-        <div className="flex flex-col items-center">
-
-          <img
-            src={
-              user?.user_metadata?.avatar_url ??
-              "https://ui-avatars.com/api/?background=fbcfe8&color=db2777&name=User"
-            }
-            className="h-32 w-32 rounded-full border-4 border-pink-200"
-            alt="avatar"
-          />
-
-          <h1 className="mt-5 text-3xl font-black">
-            {user?.user_metadata?.full_name ?? "Invitada"}
-          </h1>
-
-          <div className="mt-2 flex items-center gap-2 text-slate-500">
-            <Mail size={18} />
-            {user?.email ?? "No has iniciado sesión"}
+            <div>
+              <p className="font-bold text-pink-500">Perfil</p>
+              <h1 className="mt-1 text-4xl font-black">{userName}</h1>
+              <p className="mt-2 flex items-center gap-2 text-slate-500">
+                <Mail size={17} />
+                {userEmail}
+              </p>
+            </div>
           </div>
 
           <button
             onClick={handleLogout}
-            className="mt-6 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-6 py-3 font-bold text-white"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
           >
-            <LogOut className="mr-2 inline" size={18} />
+            <LogOut size={18} />
             Cerrar sesión
           </button>
         </div>
 
         <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-
-          <article className="rounded-3xl bg-pink-50 p-6">
-            <p className="text-sm font-bold text-pink-500">
-              Total tareas
-            </p>
-
-            <h2 className="mt-3 text-5xl font-black">
-              {total}
-            </h2>
+          <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
+            <Target className="text-pink-500" />
+            <p className="mt-4 text-sm font-bold text-slate-500">Total tareas</p>
+            <h2 className="mt-2 text-5xl font-black">{total}</h2>
           </article>
 
-          <article className="rounded-3xl bg-amber-50 p-6">
+          <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
             <Clock3 className="text-amber-500" />
-
-            <h2 className="mt-3 text-5xl font-black">
-              {pending}
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Pendientes
-            </p>
+            <p className="mt-4 text-sm font-bold text-slate-500">Pendientes</p>
+            <h2 className="mt-2 text-5xl font-black">{pending}</h2>
           </article>
 
-          <article className="rounded-3xl bg-sky-50 p-6">
+          <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
             <LoaderCircle className="text-sky-500" />
-
-            <h2 className="mt-3 text-5xl font-black">
-              {progress}
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-4 text-sm font-bold text-slate-500">
               En progreso
             </p>
+            <h2 className="mt-2 text-5xl font-black">{inProgress}</h2>
           </article>
 
-          <article className="rounded-3xl bg-emerald-50 p-6">
+          <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
             <CheckCircle2 className="text-emerald-500" />
-
-            <h2 className="mt-3 text-5xl font-black">
-              {completed}
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-4 text-sm font-bold text-slate-500">
               Finalizadas
             </p>
+            <h2 className="mt-2 text-5xl font-black">{done}</h2>
+          </article>
+        </section>
+
+        <section className="mt-8 grid gap-5 lg:grid-cols-[1fr_360px]">
+          <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-black">Progreso general</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Medí tu avance según las tareas finalizadas.
+                </p>
+              </div>
+
+              <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-pink-500">
+                {percentage}%
+              </span>
+            </div>
+
+            <div className="mt-6 h-4 rounded-full bg-white">
+              <div
+                className="h-4 rounded-full bg-gradient-to-r from-pink-500 to-rose-400 transition-all"
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
           </article>
 
+          <article className="rounded-3xl bg-gradient-to-r from-pink-500 to-rose-400 p-6 text-white shadow-lg shadow-pink-200">
+            <div className="flex items-center gap-2 text-lg font-black">
+              <Sparkles size={20} />
+              Insight Priora
+            </div>
+            <p className="mt-3 text-sm leading-6 text-pink-50">
+              {total === 0
+                ? "Todavía no cargaste tareas. Creá la primera desde el dashboard."
+                : percentage >= 70
+                  ? "Tu productividad viene muy bien. Seguí cerrando tareas pendientes."
+                  : "Priorizá las tareas de mayor impacto para mejorar tu progreso."}
+            </p>
+          </article>
         </section>
-
-        <section className="mt-10 rounded-3xl border border-pink-100 p-6">
-
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black">
-              Progreso general
-            </h2>
-
-            <span className="font-black text-pink-500">
-              {percentage}%
-            </span>
-          </div>
-
-          <div className="mt-5 h-4 rounded-full bg-pink-100">
-
-            <div
-              className="h-4 rounded-full bg-gradient-to-r from-pink-500 to-rose-400 transition-all"
-              style={{
-                width: `${percentage}%`,
-              }}
-            />
-
-          </div>
-
-        </section>
-
       </section>
     </AppShell>
   );
