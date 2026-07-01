@@ -59,6 +59,36 @@ Diseño responsive
 - Lucide React
 ---
 
+# Arquitectura
+
+La aplicación sigue una arquitectura por capas:
+
+- **app/**: páginas y rutas de Next.js.
+- **components/**: componentes reutilizables de interfaz.
+- **services/**: lógica de acceso a Supabase.
+- **hooks/**: autenticación y estado de sesión.
+- **lib/**: configuración de Supabase.
+- **types/**: definición de tipos TypeScript.
+
+Esta organización permite separar responsabilidades, facilitar el mantenimiento y escalar el proyecto.
+
+---
+
+# Uso de Inteligencia Artificial
+
+Durante el desarrollo del proyecto utilicé herramientas de IA como **ChatGPT**, **Gemini** y **Claude** para acelerar el proceso de desarrollo y aprendizaje.
+
+Las principales áreas donde me asistieron fueron:
+
+- Comprensión e integración de Supabase, tecnología con la que no tenía experiencia previa.
+- Resolución de problemas relacionados con Google OAuth y persistencia de sesiones.
+- Generación de propuestas de arquitectura y organización del proyecto.
+- Asistencia en la implementación de componentes de React y TypeScript.
+- Resolución de errores específicos durante el desarrollo.
+- Revisión y mejora de la interfaz de usuario.
+
+En todos los casos utilicé la IA como un asistente de desarrollo, validando el código generado, adaptándolo a las necesidades del proyecto y realizando las pruebas necesarias para asegurar el correcto funcionamiento de la aplicación.
+
 # Funcionalidad IA
 
 Priora incorpora un sistema de sugerencias inteligentes que analiza la información de las tareas para recomendar prioridades y brindar consejos de productividad según el avance del usuario.
