@@ -1,12 +1,16 @@
+import { access } from "fs";
 import { supabase } from "../lib/supabase";
 
 export async function signInWithGoogle() {
+  await supabase.auth.signOut(); // Ensure the user is signed out before signing in with Google
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: `${window.location.origin}/dashboard`,
       queryParams: {
         prompt: "select_account",
+        access_type: "offline",
       },
     },
   });
