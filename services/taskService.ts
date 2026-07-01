@@ -3,10 +3,10 @@ import type { Task } from "../types/task";
 
 async function getUserId() {
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  return user?.id ?? null;
+  return session?.user?.id ?? null;
 }
 
 export async function getTasks() {
@@ -26,8 +26,11 @@ export async function getTasks() {
 }
 
 export async function createTask(task: Omit<Task, "id">) {
-  const userId = await getUserId()
-  if (!userId) throw new Error("Usuario no autenticado");
+  const userId = await getUserId();
+
+  if (!userId) {
+    throw new Error("Usuario no autenticado");
+  }
 
   const { data, error } = await supabase
     .from("tasks")
@@ -45,7 +48,10 @@ export async function createTask(task: Omit<Task, "id">) {
 
 export async function deleteTask(id: string) {
   const userId = await getUserId();
-  if (!userId) throw new Error("Usuario no autenticado");
+
+  if (!userId) {
+    throw new Error("Usuario no autenticado");
+  }
 
   const { error } = await supabase
     .from("tasks")
@@ -58,7 +64,10 @@ export async function deleteTask(id: string) {
 
 export async function updateTaskStatus(id: string, status: Task["status"]) {
   const userId = await getUserId();
-  if (!userId) throw new Error("Usuario no autenticado");
+
+  if (!userId) {
+    throw new Error("Usuario no autenticado");
+  }
 
   const { data, error } = await supabase
     .from("tasks")

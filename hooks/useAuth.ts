@@ -23,11 +23,5 @@ export async function getCurrentSessionUser() {
     data: { session },
   } = await supabase.auth.getSession();
 
-  if (session?.user) return session.user;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  return user ?? null;
+  return session?.user ?? null;
 }
