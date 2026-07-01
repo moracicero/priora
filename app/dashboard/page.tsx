@@ -72,33 +72,38 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    async function fetchInitialData() {
-      const currentUser = await getCurrentSessionUser();
-      setUser(currentUser);
+  async function fetchInitialData() {
+    const currentUser = await getCurrentSessionUser();
 
-      if (currentUser) {
-        await loadTasks();
-      }
+    setUser(currentUser);
+
+    if (currentUser) {
+      const data = await getTasks();
+      setTasks(data);
+    } else {
+      setTasks([]);
     }
+  }
 
-    fetchInitialData();
+  fetchInitialData();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const loggedUser = session?.user ?? null;
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const loggedUser = session?.user ?? null;
 
-      setUser(loggedUser);
+    setUser(loggedUser);
 
-      if (loggedUser) {
-        await loadTasks();
-      } else {
-        setTasks([]);
-      }
-    });
+    if (loggedUser) {
+      const data = await getTasks();
+      setTasks(data);
+    } else {
+      setTasks([]);
+    }
+  });
 
-    return () => subscription.unsubscribe();
-  }, []);
+  return () => subscription.unsubscribe();
+}, []);
 
   async function handleCreateTask() {
   const currentUser = user ?? (await getCurrentSessionUser());
