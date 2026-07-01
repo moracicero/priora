@@ -23,6 +23,44 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <main className="min-h-screen bg-[#FFF9FB] text-slate-950">
+      <header className="sticky top-0 z-50 border-b border-pink-100 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 text-white">
+              ✓
+            </div>
+            <span className="text-xl font-black">Priora</span>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="rounded-2xl bg-pink-50 px-3 py-2 text-xs font-black text-pink-500"
+          >
+            Salir
+          </button>
+        </div>
+
+        <nav className="grid grid-cols-3 gap-2">
+          {links.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center justify-center gap-1 rounded-2xl px-2 py-2 text-xs font-black ${
+                  active ? "bg-pink-50 text-pink-500" : "text-slate-500"
+                }`}
+              >
+                <Icon size={15} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </header>
+
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
         <aside className="hidden border-r border-pink-100 bg-white/80 p-6 lg:block">
           <div className="flex items-center gap-3">
@@ -63,36 +101,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </aside>
 
-        <section className="pb-28 p-6 lg:p-10 lg:pb-10">{children}</section>
+        <section className="p-6 lg:p-10">{children}</section>
       </div>
-
-      <nav className="fixed bottom-4 left-1/2 z-50 flex w-[92%] -translate-x-1/2 items-center justify-between rounded-3xl border border-pink-100 bg-white/95 p-3 shadow-2xl shadow-pink-100 backdrop-blur lg:hidden">
-        {links.map((item) => {
-          const Icon = item.icon;
-          const active = pathname === item.href;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-xs font-black ${
-                active ? "bg-pink-50 text-pink-500" : "text-slate-400"
-              }`}
-            >
-              <Icon size={18} />
-              {item.label}
-            </Link>
-          );
-        })}
-
-        <button
-          onClick={handleLogout}
-          className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-xs font-black text-slate-400"
-        >
-          <LogOut size={18} />
-          Salir
-        </button>
-      </nav>
     </main>
   );
 }
