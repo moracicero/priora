@@ -6,16 +6,18 @@ import { useEffect, useState } from "react";
 import {
   CheckCircle2,
   Clock3,
+  Flame,
   LoaderCircle,
-  LogOut,
   Mail,
   Sparkles,
   Target,
+  Trophy,
+  Zap,
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 import { AppShell } from "../../components/layout/AppShell";
-import { getCurrentSessionUser, signOut } from "../../hooks/useAuth";
+import { getCurrentSessionUser } from "../../hooks/useAuth";
 import { getTasks } from "../../services/taskService";
 import type { Task } from "../../types/task";
 
@@ -39,21 +41,33 @@ export default function ProfilePage() {
 
   const total = tasks.length;
   const pending = tasks.filter((task) => task.status === "Pendiente").length;
-  const inProgress = tasks.filter(
-    (task) => task.status === "En progreso"
-  ).length;
+  const inProgress = tasks.filter((task) => task.status === "En progreso").length;
   const done = tasks.filter((task) => task.status === "Finalizada").length;
-
+  const highPriority = tasks.filter((task) => task.priority === "Alta").length;
   const percentage = total === 0 ? 0 : Math.round((done / total) * 100);
+
+  const favoriteCategory =
+    tasks.length === 0
+      ? "Sin datos"
+      : Object.entries(
+          tasks.reduce<Record<string, number>>((acc, task) => {
+            acc[task.category] = (acc[task.category] || 0) + 1;
+            return acc;
+          }, {})
+        ).sort((a, b) => b[1] - a[1])[0]?.[0] || "Sin datos";
+
+  const productivityLevel =
+    percentage === 100
+      ? "Excelente"
+      : percentage >= 70
+        ? "Muy bueno"
+        : percentage >= 40
+          ? "En progreso"
+          : "Inicial";
 
   const userName = user?.user_metadata?.full_name || "Invitada";
   const userEmail = user?.email || "Sin sesión iniciada";
   const userAvatar = user?.user_metadata?.avatar_url;
-
-  async function handleLogout() {
-    await signOut();
-    window.location.href = "/";
-  }
 
   return (
     <AppShell>
@@ -82,13 +96,10 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200"
-          >
-            <LogOut size={18} />
-            Cerrar sesión
-          </button>
+          <div className="rounded-3xl bg-gradient-to-r from-pink-500 to-rose-400 px-6 py-4 text-white shadow-lg shadow-pink-200">
+            <p className="text-sm font-bold text-pink-50">Nivel Priora</p>
+            <p className="text-2xl font-black">{productivityLevel}</p>
+          </div>
         </div>
 
         <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -106,18 +117,40 @@ export default function ProfilePage() {
 
           <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
             <LoaderCircle className="text-sky-500" />
-            <p className="mt-4 text-sm font-bold text-slate-500">
-              En progreso
-            </p>
+            <p className="mt-4 text-sm font-bold text-slate-500">En progreso</p>
             <h2 className="mt-2 text-5xl font-black">{inProgress}</h2>
           </article>
 
           <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
             <CheckCircle2 className="text-emerald-500" />
-            <p className="mt-4 text-sm font-bold text-slate-500">
-              Finalizadas
-            </p>
+            <p className="mt-4 text-sm font-bold text-slate-500">Finalizadas</p>
             <h2 className="mt-2 text-5xl font-black">{done}</h2>
+          </article>
+        </section>
+
+        <section className="mt-8 grid gap-5 lg:grid-cols-3">
+          <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
+            <Flame className="text-rose-500" />
+            <p className="mt-4 text-sm font-bold text-slate-500">
+              Alta prioridad
+            </p>
+            <h2 className="mt-2 text-4xl font-black">{highPriority}</h2>
+          </article>
+
+          <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
+            <Trophy className="text-pink-500" />
+            <p className="mt-4 text-sm font-bold text-slate-500">
+              Categoría más usada
+            </p>
+            <h2 className="mt-2 text-3xl font-black">{favoriteCategory}</h2>
+          </article>
+
+          <article className="rounded-3xl border border-pink-100 bg-[#FFF9FB] p-6">
+            <Zap className="text-amber-500" />
+            <p className="mt-4 text-sm font-bold text-slate-500">
+              Efectividad
+            </p>
+            <h2 className="mt-2 text-4xl font-black">{percentage}%</h2>
           </article>
         </section>
 
@@ -154,7 +187,9 @@ export default function ProfilePage() {
                 ? "Todavía no cargaste tareas. Creá la primera desde el dashboard."
                 : percentage >= 70
                   ? "Tu productividad viene muy bien. Seguí cerrando tareas pendientes."
-                  : "Priorizá las tareas de mayor impacto para mejorar tu progreso."}
+                  : highPriority > 0
+                    ? "Tenés tareas de prioridad alta. Conviene resolverlas primero."
+                    : "Tu carga está bastante equilibrada. Podés avanzar por estado o categoría."}
             </p>
           </article>
         </section>
