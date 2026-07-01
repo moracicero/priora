@@ -19,23 +19,15 @@ export async function signOut() {
 }
 
 export async function getCurrentSessionUser() {
-  const url = new URL(window.location.href);
-  const code = url.searchParams.get("code");
-
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (error) {
-      console.error("Exchange code error:", error);
-      alert(error.message);
-    }
-
-    window.history.replaceState({}, document.title, "/dashboard");
-  }
-
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  return session?.user ?? null;
+  if (session?.user) return session.user;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return user ?? null;
 }
